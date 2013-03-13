@@ -1,0 +1,6 @@
+[submodule "microgl"]
+	path = microgl
+	url = git://github.com/xl1/microgl.git
+[submodule "eve"]
+	path = eve
+	url = git://github.com/adobe-webplatform/eve.git

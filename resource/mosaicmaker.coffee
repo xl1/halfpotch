@@ -77,20 +77,71 @@ class ImageProcessor
         gl_FragColor = texture2D(u_source, gl_FragCoord.xy / u_sourceSize);
       }
     """
-    reduceColor: """
+    
+    reduceColorDithered: """
       precision mediump float;
       uniform sampler2D u_source;
       uniform vec2 u_sourceSize;
       uniform sampler2D u_colors;
 
       uniform bool u_vivid;
-      //uniform bool u_dither;
       uniform float u_brightness;
       uniform float u_contrast;
-
-      const int COLORLEN = 32;
-
-      float filterColor(float color){
+    
+      const int COMBINATIONS = 128;
+      
+      void getColors(in int idx, out vec4 c1, out vec4 c2){
+        float x = (0.5 + float(idx)) / float(COMBINATIONS);
+        c1 = texture2D(u_colors, vec2(x, 0.0));
+        c2 = texture2D(u_colors, vec2(x, 2.0));
+      }
+      float dist(vec4 srcColor, vec4 color){
+        float d = distance(srcColor, color);
+        if(u_vivid) d /= (distance(vec3(0.5), color.rgb) + 0.4);
+        return d;
+      }
+      float ditherIndex(){
+        float p = floor(mod(gl_FragCoord.x, 4.0));
+        float q = floor(mod(p - gl_FragCoord.y, 4.0));
+        return (
+          8.0 * mod(q, 2.0) +
+          4.0 * mod(p, 2.0) +
+          2.0 * floor(q / 2.0) +
+          floor(p / 2.0) +
+          0.5
+        ) / 16.0;
+      }
+      float calculateBestRatio(vec4 srcColor, vec4 c1, vec4 c2){
+        vec4 dif = c2 - c1;
+        return floor(
+          0.5 + dot(dif, srcColor - c1) / dot(dif, dif) * 16.0
+        ) / 16.0;
+      }
+      vec4 dither(vec4 srcColor){
+        vec4 c1, c2, canditate;
+        float ratio;
+        float d, minDist = 9.9;
+        float index = ditherIndex();
+        
+        for(int i = 0; i < COMBINATIONS; i++){
+          getColors(i, c1, c2);
+          ratio = calculateBestRatio(srcColor, c1, c2);
+          d =
+            dist(srcColor, mix(c1, c2, clamp(ratio, 1.0, 0.0))) +
+            distance(c1, c2) * 0.1;
+          if(minDist > d){
+            minDist = d;
+            if(index > ratio){
+              canditate = c1;
+            } else {
+              canditate = c2;
+            }
+          }
+        }
+        return canditate;
+      }
+        
+      float filterComponent(float color){
         color = pow(color, u_brightness);
         if(color < 0.5){
           return 0.5 * pow(2.0 * color, 1.0 / u_contrast);
@@ -98,29 +149,71 @@ class ImageProcessor
           return 0.5 * pow(2.0 * color - 1.0, u_contrast) + 0.5;
         }
       }
-
-      void main(){
-        vec4 color, mincolor;
-        float dist, mindist = 9.9, x;
-
-        vec4 srccolor = texture2D(u_source, gl_FragCoord.xy / u_sourceSize);
-        srccolor = vec4(
-          filterColor(srccolor.r),
-          filterColor(srccolor.g),
-          filterColor(srccolor.b),
-          1.0
+      vec4 getSourceColor(){
+        vec4 col = texture2D(u_source, gl_FragCoord.xy / u_sourceSize);
+        return vec4(
+          filterComponent(col.r), filterComponent(col.g),
+          filterComponent(col.b), 1.0
         );
+      }
+      void main(){
+        gl_FragColor = dither(getSourceColor());
+      }
+    """
+     
+    reduceColor: """
+      precision mediump float;
+      uniform sampler2D u_source;
+      uniform vec2 u_sourceSize;
+      uniform sampler2D u_colors;
+
+      uniform bool u_vivid;
+      uniform float u_brightness;
+      uniform float u_contrast;
+      
+      const int COLORLEN = 32;
+      
+      vec4 getColor(int idx){
+        float x = (0.5 + float(idx)) / float(COLORLEN);
+        return texture2D(u_colors, vec2(x, 0.5));
+      }
+      float dist(vec4 srcColor, vec4 color){
+        float d = distance(srcColor, color);
+        if(u_vivid) d /= (distance(vec3(0.5), color.rgb) + 0.4);
+        return d;
+      }
+      vec4 nearest(vec4 srcColor){
+        vec4 col, minCol;
+        float d, mind = 9.9;
+        
         for(int i = 0; i < COLORLEN; i++){
-          x = (0.5 + float(i)) / float(COLORLEN);
-          color = texture2D(u_colors, vec2(x, 0.5));
-          dist = distance(color, srccolor);
-          if(u_vivid) dist /= (distance(vec3(0.5), color.rgb) + 0.3);
-          if(mindist > dist){
-            mindist = dist;
-            mincolor = color;
+          col = getColor(i);
+          d = dist(srcColor, col);
+          if(mind > d){
+            minCol = col;
+            mind = d;
           }
         }
-        gl_FragColor = mincolor;
+        return minCol;
+      }
+        
+      float filterComponent(float color){
+        color = pow(color, u_brightness);
+        if(color < 0.5){
+          return 0.5 * pow(2.0 * color, 1.0 / u_contrast);
+        } else {
+          return 0.5 * pow(2.0 * color - 1.0, u_contrast) + 0.5;
+        }
+      }
+      vec4 getSourceColor(){
+        vec4 col = texture2D(u_source, gl_FragCoord.xy / u_sourceSize);
+        return vec4(
+          filterComponent(col.r), filterComponent(col.g),
+          filterComponent(col.b), 1.0
+        );
+      }
+      void main(){
+        gl_FragColor = nearest(getSourceColor());
       }
     """
     thumbnail: """
@@ -139,16 +232,35 @@ class ImageProcessor
       uniform sampler2D u_source;
       uniform vec2 u_sourceSize;
       uniform vec2 u_unitSize;
+      uniform vec2 u_bigUnitSize;
       uniform float u_scale;
+      uniform sampler2D u_check;
+      
+      const int COLORLEN = 32;
 
+      float checked(vec4 color){
+        float x;
+        
+        for(int i = 0; i < COLORLEN; i++){
+          x = (0.5 + float(i)) / float(COLORELEN);
+          if(color == texture2D(u_check, vec2(x, 0.0)){
+            return texture2D(u_check, vec2(x, 2.0)).a
+          }
+        }
+        return 0.0;
+      }
+      bool isOnGrid(vec2 unit){
+        vec2 m = mod(gl_FragCoord.xy - vec2(0.5), unit);
+        return m.x == 0.0 || m.y == 0.0;
+      }
       float luma(vec4 color){
         return dot(vec3(0.3, 0.59, 0.11), color.rgb);
       }
       void main(){
-        vec2 pos_f = (gl_FragCoord.xy - vec2(0.5)) / u_unitSize / u_scale;
-        vec2 pos = floor(pos_f) + vec2(0.5);
-        vec4 color = texture2D(u_source, pos / u_sourceSize);
-        if(pos.x - pos_f.x == 0.5 || pos.y - pos_f.y == 0.5){
+        vec2 pos = (gl_FragCoord.xy - vec2(0.5)) / u_unitSize / u_scale;
+        vec2 posf = floor(pos);
+        vec4 color = texture2D(u_source, (posf + vec2(0.5)) / u_sourceSize);
+        if(pos.x - pos_f.x == 0.0 || pos.y - pos_f.y == 0.0){
           if(luma(color) < 0.5){
             color += vec4(0.4);
           } else {
@@ -163,9 +275,7 @@ class ImageProcessor
     @_img = document.createElement 'img'
     @_ctx = document.createElement('canvas').getContext '2d'
     colorCanv = document.createElement('canvas')
-    colorCanv.width = 32
-    colorCanv.height = 1
-    @_colorCtx= colorCanv.getContext '2d'
+    @_colorCtx = colorCanv.getContext '2d'
     @_gl = new MicroGL(antialias: false)
 
   _scale: ->
@@ -187,18 +297,56 @@ class ImageProcessor
       )
       .bindVars(variables)
     if target then @_gl.drawFrame(target) else @_gl.draw()
+    
+  _createCombination: (max=128) ->
+    colors = []
+    colorNames = Object.keys @colors
+    i = 0
+    for ii in [0...colorNames.length]
+      c1 = @colors[colorNames[ii]]
+      continue unless c1.use
+      for jj in [0...ii]
+        c2 = @colors[colorNames[jj]]
+        continue unless c2.use
+        colors.push [c1, c2]
+    
+    colors.sort ([a1, a2], [b1, b2]) ->
+      a1.color.dist(a2.color) - b1.color.dist(b2.color)
+    colors.slice(0, max)
 
   _reduceColor: ->
-    colorData = @_colorCtx.createImageData(32, 1)
-    #for color, i in @colors
-    for name, i in Object.keys @colors
-      color = @colors[name]
-      if color.use
-        colorData.data.set([
-          color.color.r, color.color.g, color.color.b, 255
-        ], i << 2)
-    @_colorCtx.putImageData colorData, 0, 0
+    colorCanv = @_colorCtx.canvas
+    
+    if @dither
+      shader = @shader.reduceColorDithered
+    
+      colorCanv.width = 128
+      colorCanv.height = 2
+      colorData = @_colorCtx.createImageData(128, 2)
 
+      for [c1, c2], i in @_createCombination(128)
+        colorData.data.set([
+          c1.color.r, c1.color.g, c1.color.b, 255
+        ], i << 2)
+        colorData.data.set([
+          c2.color.r, c2.color.g, c2.color.b, 255
+        ], (i + 128) << 2)
+    else
+      shader = @shader.reduceColor
+      
+      colorCanv.width = 32
+      colorCanv.height = 1
+      colorData = @_colorCtx.createImageData(32, 1)
+      for name, i in Object.keys @colors
+        c1 = @colors[name]
+        continue unless c1.use
+        colorData.data.set([
+          c1.color.r, c1.color.g, c1.color.b, 255
+        ], i << 2)
+      
+    @_colorCtx.putImageData colorData, 0, 0
+    
+    # draw on frame buffer: @colorReduced
     canv = @_ctx.canvas
     { width, height } = canv
     @colorReduced = @_gl.frame width, height
@@ -208,10 +356,10 @@ class ImageProcessor
     @_renderGL(
       @width,
       @_canvasHeight,
-      @shader.reduceColor,
+      shader,
       canv,
       @colorReduced,
-      u_colors: @_colorCtx.canvas,
+      u_colors: colorCanv
       u_vivid: @vivid
       u_brightness: Math.exp(-@brightness)
       u_contrast: Math.exp(-@contrast)

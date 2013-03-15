@@ -1,7 +1,9 @@
 # utilities
 $ = (id) -> document.getElementById id
 
-class SuperArray
+class SuperArray extends Array
+  constructor: (ary=[]) -> Array::push.apply(@, ary)
+
   minBy: (func) ->
     min = Infinity
     solution = null
@@ -11,8 +13,17 @@ class SuperArray
     solution
 
   maxBy: (func) -> @minBy (d) -> -func(d)
-  min: -> @minBy (d) -> d
-  max: -> @minBy (d) -> -d
+  min: -> Math.min @...
+  max: -> Math.max @...
+
+  combinations: (len) ->
+    return [[]] unless len
+    res = []
+    for a, i in @
+      for last in SuperArray::combinations.call @slice(i + 1), len - 1
+        res.push [a].concat(last)
+    res
+
 
 uuid = do ->
   re = /[xy]/g
@@ -46,6 +57,25 @@ class Color
   toArray: -> [@r, @g, @b]
   toString: -> "rgb(#{@r}, #{@g}, #{@b})"
 
+# create imagedata from array of (array of colors)
+colorsToCanvas = do ->
+  ctx = document.createElement('canvas').getContext '2d'
+  (ary) ->
+    if arguments.length is 3
+      [width, height, ary] = arguments
+    else
+      [width, height] = [ary.length, ary[0].length]
+    ctx.canvas.width  = width
+    ctx.canvas.height = height
+    idata = ctx.createImageData(width, height)
+    for inner, x in ary
+      for color, y in inner
+        idata.data.set([
+          color.r, color.g, color.b, 255
+        ], (x + y * width) << 2)
+    ctx.putImageData(idata, 0, 0)
+    ctx.canvas
+
 
 class ImageProcessor
   width: 48
@@ -63,8 +93,10 @@ class ImageProcessor
   shader:
     vertex: """
       attribute vec2 a_position;
+      varying vec2 v_texCoord;
 
       void main(){
+        v_texCoord = a_position / 2.0 + vec2(0.5);
         gl_Position = vec4(a_position, 0.0, 1.0);
       }
     """
@@ -72,21 +104,23 @@ class ImageProcessor
       precision mediump float;
       uniform sampler2D u_source;
       uniform vec2 u_sourceSize;
+      varying vec2 v_texCoord;
 
       void main(){
-        gl_FragColor = texture2D(u_source, gl_FragCoord.xy / u_sourceSize);
+        gl_FragColor = texture2D(u_source, v_texCoord);
       }
     """
     
     reduceColorDithered: """
       precision mediump float;
       uniform sampler2D u_source;
-      uniform vec2 u_sourceSize;
       uniform sampler2D u_colors;
 
       uniform bool u_vivid;
       uniform float u_brightness;
       uniform float u_contrast;
+
+      varying vec2 v_texCoord;
     
       const int COMBINATIONS = 128;
       
@@ -97,7 +131,7 @@ class ImageProcessor
       }
       float dist(vec4 srcColor, vec4 color){
         float d = distance(srcColor, color);
-        if(u_vivid) d /= (distance(vec3(0.5), color.rgb) + 0.4);
+        if(u_vivid) d /= (distance(vec3(0.5), color.rgb) + 0.3);
         return d;
       }
       float ditherIndex(){
@@ -127,8 +161,8 @@ class ImageProcessor
           getColors(i, c1, c2);
           ratio = calculateBestRatio(srcColor, c1, c2);
           d =
-            dist(srcColor, mix(c1, c2, clamp(ratio, 1.0, 0.0))) +
-            distance(c1, c2) * 0.1;
+            dist(srcColor, mix(c1, c2, clamp(ratio, 0.0, 1.0))) +
+            distance(c1, c2) / 4.0;
           if(minDist > d){
             minDist = d;
             if(index > ratio){
@@ -150,7 +184,7 @@ class ImageProcessor
         }
       }
       vec4 getSourceColor(){
-        vec4 col = texture2D(u_source, gl_FragCoord.xy / u_sourceSize);
+        vec4 col = texture2D(u_source, v_texCoord);
         return vec4(
           filterComponent(col.r), filterComponent(col.g),
           filterComponent(col.b), 1.0
@@ -164,12 +198,13 @@ class ImageProcessor
     reduceColor: """
       precision mediump float;
       uniform sampler2D u_source;
-      uniform vec2 u_sourceSize;
       uniform sampler2D u_colors;
 
       uniform bool u_vivid;
       uniform float u_brightness;
       uniform float u_contrast;
+
+      varying vec2 v_texCoord;
       
       const int COLORLEN = 32;
       
@@ -179,7 +214,7 @@ class ImageProcessor
       }
       float dist(vec4 srcColor, vec4 color){
         float d = distance(srcColor, color);
-        if(u_vivid) d /= (distance(vec3(0.5), color.rgb) + 0.4);
+        if(u_vivid) d /= (distance(vec3(0.5), color.rgb) + 0.3);
         return d;
       }
       vec4 nearest(vec4 srcColor){
@@ -206,7 +241,7 @@ class ImageProcessor
         }
       }
       vec4 getSourceColor(){
-        vec4 col = texture2D(u_source, gl_FragCoord.xy / u_sourceSize);
+        vec4 col = texture2D(u_source, v_texCoord);
         return vec4(
           filterComponent(col.r), filterComponent(col.g),
           filterComponent(col.b), 1.0
@@ -216,243 +251,165 @@ class ImageProcessor
         gl_FragColor = nearest(getSourceColor());
       }
     """
-    thumbnail: """
-      precision mediump float;
-      uniform sampler2D u_source;
-      uniform vec2 u_sourceSize;
-      uniform vec2 u_unitSize;
-
-      void main(){
-        vec2 pos = floor(gl_FragCoord.xy / u_unitSize) + vec2(0.5);
-        gl_FragColor = texture2D(u_source, pos / u_sourceSize);
-      }
-    """
     blueprint: """
       precision mediump float;
       uniform sampler2D u_source;
-      uniform vec2 u_sourceSize;
       uniform vec2 u_unitSize;
       uniform vec2 u_bigUnitSize;
       uniform float u_scale;
-      uniform sampler2D u_check;
+      uniform sampler2D u_colors;
+
+      varying vec2 v_texCoord;
       
       const int COLORLEN = 32;
 
-      float checked(vec4 color){
+      bool checked(vec4 color){
         float x;
-        
         for(int i = 0; i < COLORLEN; i++){
-          x = (0.5 + float(i)) / float(COLORELEN);
-          if(color == texture2D(u_check, vec2(x, 0.0)){
-            return texture2D(u_check, vec2(x, 2.0)).a
-          }
+          x = (0.5 + float(i)) / float(COLORLEN);
+          if(color == texture2D(u_colors, vec2(x, 0.5))) return true;
         }
-        return 0.0;
-      }
-      bool isOnGrid(vec2 unit){
-        vec2 m = mod(gl_FragCoord.xy - vec2(0.5), unit);
-        return m.x == 0.0 || m.y == 0.0;
+        return false;
       }
       float luma(vec4 color){
         return dot(vec3(0.3, 0.59, 0.11), color.rgb);
       }
+      vec4 borderColor(vec4 color, float degree){
+        if(luma(color) < 0.5) return color + vec4(degree);
+        return color - vec4(vec3(degree), 0.0);
+      }
       void main(){
-        vec2 pos = (gl_FragCoord.xy - vec2(0.5)) / u_unitSize / u_scale;
-        vec2 posf = floor(pos);
-        vec4 color = texture2D(u_source, (posf + vec2(0.5)) / u_sourceSize);
-        if(pos.x - pos_f.x == 0.0 || pos.y - pos_f.y == 0.0){
-          if(luma(color) < 0.5){
-            color += vec4(0.4);
-          } else {
-            color -= vec4(0.4, 0.4, 0.4, 0.0);
-          }
+        vec2 pos = (gl_FragCoord.xy - vec2(0.5)) / u_scale;
+        vec2 localCoord = mod(pos, u_unitSize);
+        vec2 domainCoord = mod(pos, u_unitSize * u_bigUnitSize);
+        vec4 color = texture2D(u_source, v_texCoord);
+        
+        if(any(equal(domainCoord, vec2(0.0)))){
+          gl_FragColor = borderColor(color, 1.0);
+        } else if(localCoord.x == localCoord.y && checked(color) ||
+            any(equal(localCoord, vec2(0.0)))){
+          gl_FragColor = borderColor(color, 0.3);
+        } else {
+          gl_FragColor = color;
         }
-        gl_FragColor = color;
       }
     """
 
   constructor: ->
     @_img = document.createElement 'img'
-    @_ctx = document.createElement('canvas').getContext '2d'
-    colorCanv = document.createElement('canvas')
-    @_colorCtx = colorCanv.getContext '2d'
     @_gl = new MicroGL(antialias: false)
 
-  _scale: ->
-    canv = @_ctx.canvas
-    canv.width = @width
-    canv.height = @_canvasHeight =
-      @width * @unitWidth / @unitHeight * @_img.height / @_img.width |0
-    @_ctx.drawImage @_img, 0, 0, canv.width, canv.height
-
-  _renderGL: (width, height, fshader, source, target, variables={}) ->
+  _renderGL: (width, height, fshader, source, variables={}) ->
+    tex = @_gl.texture source
     @_gl
+      .texParameter(tex, filter: 'NEAREST')
       .init(null, width, height)
       .program(@shader.vertex, fshader)
       .bindVars(
         a_position: [-1,-1, -1,1, 1,-1, 1,1]
-        u_source: source
-        u_sourceSize: [source.width, source.height]
-        u_unitSize: [@unitWidth, @unitHeight]
+        u_source: tex
       )
       .bindVars(variables)
-    if target then @_gl.drawFrame(target) else @_gl.draw()
-    
-  _createCombination: (max=128) ->
-    colors = []
-    colorNames = Object.keys @colors
-    i = 0
-    for ii in [0...colorNames.length]
-      c1 = @colors[colorNames[ii]]
-      continue unless c1.use
-      for jj in [0...ii]
-        c2 = @colors[colorNames[jj]]
-        continue unless c2.use
-        colors.push [c1, c2]
-    
-    colors.sort ([a1, a2], [b1, b2]) ->
-      a1.color.dist(a2.color) - b1.color.dist(b2.color)
-    colors.slice(0, max)
+      .draw().gl.canvas
 
   _reduceColor: ->
-    colorCanv = @_colorCtx.canvas
-    
     if @dither
       shader = @shader.reduceColorDithered
-    
-      colorCanv.width = 128
-      colorCanv.height = 2
-      colorData = @_colorCtx.createImageData(128, 2)
-
-      for [c1, c2], i in @_createCombination(128)
-        colorData.data.set([
-          c1.color.r, c1.color.g, c1.color.b, 255
-        ], i << 2)
-        colorData.data.set([
-          c2.color.r, c2.color.g, c2.color.b, 255
-        ], (i + 128) << 2)
+      colorCanv = colorsToCanvas(128, 2,
+        SuperArray::combinations.call(
+          (c.color for c in @colors when c.use), 2
+        ).sort(
+          ([a1, a2], [b1, b2]) -> a1.dist(a2) - b1.dist(b2)
+        ).slice(0, 128)
+      )
     else
       shader = @shader.reduceColor
-      
-      colorCanv.width = 32
-      colorCanv.height = 1
-      colorData = @_colorCtx.createImageData(32, 1)
-      for name, i in Object.keys @colors
-        c1 = @colors[name]
-        continue unless c1.use
-        colorData.data.set([
-          c1.color.r, c1.color.g, c1.color.b, 255
-        ], i << 2)
-      
-    @_colorCtx.putImageData colorData, 0, 0
+      colorCanv = colorsToCanvas 32, 1, ([c.color] for c in @colors when c.use)
     
-    # draw on frame buffer: @colorReduced
-    canv = @_ctx.canvas
-    { width, height } = canv
-    @colorReduced = @_gl.frame width, height
-    @colorReduced.color.width = width
-    @colorReduced.color.height = height
-
-    @_renderGL(
-      @width,
-      @_canvasHeight,
-      shader,
-      canv,
-      @colorReduced,
-      u_colors: colorCanv
-      u_vivid: @vivid
-      u_brightness: Math.exp(-@brightness)
-      u_contrast: Math.exp(-@contrast)
-    )
+    # draw on canvas: @colorReduced
+    canv = document.createElement 'canvas'
+    @colorReduced = canv.getContext '2d'
+    canv.width = @width
+    canv.height = @height =
+      @width * @unitWidth / @unitHeight * @_img.height / @_img.width |0
+    @colorReduced.drawImage(
+      @_renderGL(
+        @width, @height,
+        shader, @_img,
+        u_colors: colorCanv
+        u_vivid: @vivid
+        u_brightness: Math.exp(-@brightness)
+        u_contrast: Math.exp(-@contrast)
+      )
+    , 0, 0)
 
   render: (source, callback) ->
     #@_resetColorAmount()
     if source
       @_img.onload = =>
-        @_scale()
         @_reduceColor()
         callback?()
       @_img.src = source
     else
-      @_scale()
       @_reduceColor()
       callback?()
 
   getThumbnail: ->
-    canv = @_ctx.canvas
     @_renderGL(
-      @width * @unitWidth,
-      @_canvasHeight * @unitHeight,
-      @shader.thumbnail,
-      @colorReduced.color
-    ).gl.canvas
+      @width * @unitWidth, @height * @unitHeight,
+      @shader.noop, @colorReduced.canvas
+    )
 
   getBlueprint: ->
-    canv = @_gl.gl.canvas
+    check = colorsToCanvas 32, 1, ([c.color] for c in @colors when c.checked)
     @_renderGL(
-      @width * @unitWidth * 4,
-      @_canvasHeight * @unitHeight * 4,
-      @shader.blueprint,
-      @colorReduced.color,
-      null,
-      u_scale: 4
-    ).gl.canvas
+      @width * @unitWidth * 4, @height * @unitHeight * 4,
+      @shader.blueprint, @colorReduced.canvas,
+      u_scale: 4,
+      u_unitSize: [@unitWidth, @unitHeight]
+      u_bigUnitSize: [4, 7 - @unitHeight / 2 |0]
+      u_colors: check
+    )
 
 
 # models and views
 class Palette extends Model
-  colors:
-    'Black':             color: new Color( 33,  33,  33), use: true
-    'Dark Gray':         color: new Color(107,  90,  90), use: true
-    'Light Gray':        color: new Color(156, 156, 156), use: true
-    'Very Light Gray':   color: new Color(232, 232, 232), use: true, check: true
-    'White':             color: new Color(255, 255, 255), use: true
-    'Dark Bluish Gray':  color: new Color( 89,  93,  96)
-    'Light Bluish Gray': color: new Color(175, 181, 199)
-    'Blue':              color: new Color(  0,  87, 166)
-    'Red':               color: new Color(179,   0,   6)
-    'Yellow':            color: new Color(247, 209,  23)
-    'Green':             color: new Color(  0, 100,  46)
-    'Tan':               color: new Color(222, 198, 156)
-    'Reddish Brown':     color: new Color(137,  53,  29)
-    'Dark Blue':         color: new Color( 20,  48,  68)
-    'Bright Pink':       color: new Color(243, 154, 194)
-    'Brown':             color: new Color( 83,  33,  21)
-    'Dark Purple':       color: new Color( 95,  38, 131)
-    'Dark Red':          color: new Color(106,  14,  21)
-    'Dark Tan':          color: new Color(144, 116,  80)
-    'Dark Turquoise':    color: new Color(  0, 138, 128)
-    'Lime':              color: new Color(166, 202,  85)
-    'Maersk Blue':       color: new Color(107, 173, 214)
-    'Medium Blue':       color: new Color( 97, 175, 255)
-    'Medium Lavender':   color: new Color(181, 165, 213)
-    'Medium Orange':     color: new Color(255, 165,  49)
-    'Orange':            color: new Color(255, 126,  20)
-    'Pink':              color: new Color(255, 199, 225)
-    'Purple':            color: new Color(165,  73, 156)
-    'Sand Blue':         color: new Color( 90, 113, 132)
-    'Sand Green':        color: new Color(118, 162, 144)
+  constructor: (@colors=[]) ->
+    @_idx = {}
+    for c, i in @colors
+      @_idx[c.name] = i
+
+  color: (name) ->
+    @colors[@_idx[name]]
+
+#  add: (name, color, use=false, checked=false) ->
+#    @_idx[name] = -1 + @color.push { name, color, use, checked }
+#    @change()
+#  remove: (name) ->
+#    @color.splice(@_idx[name], 1)
+#    delete @_idx[name]
+#    @change()
 
   use: (name) ->
-    @colors[name].use = true
+    @color(name).use = true
     @change()
   unuse: (name) ->
-    color = @colors[name]
+    color = @color(name)
     color.use = color.checked = false
     @change()
 
   check: (name) ->
-    @colors[name].checked = true
+    @color(name).checked = true
     @change()
   uncheck: (name) ->
-    @colors[name].checked = false
+    @color(name).checked = false
     @change()
 
   resetAmount: ->
     for color in @colors
       color.amount = 0
   setAmount: (name, value) ->
-    @colors[name].amount = value
+    @color(name).amount = value
     @change()
 
 
@@ -460,23 +417,21 @@ class PaletteView extends View
   constructor: (model, @elem) ->
     super model
 
-    colors = @model.colors
-
     frag = document.createDocumentFragment()
-    for name in Object.keys colors
-      color = colors[name]
+    for c in @model.colors
       li = document.createElement 'li'
-      li.style.backgroundColor = color.color.toString()
-      li.dataset.name = name
+      li.style.backgroundColor = c.color.toString()
+      li.dataset.name = c.name
       frag.appendChild li
     @elem.appendChild frag
 
     @elem.addEventListener 'click', (e) =>
       name = e.target.dataset.name
-      return unless name
-      if colors[name].checked
+      color = @model.color(name)
+      return unless color
+      if color.checked
         @model.unuse name
-      else if colors[name].use
+      else if color.use
         @model.check name
       else
         @model.use name
@@ -486,8 +441,7 @@ class PaletteView extends View
 
   render: ->
     for li in @elem.childNodes
-      name = li.dataset.name
-      color = @model.colors[name]
+      color = @model.color(li.dataset.name)
       classes = []
       if color.use
         classes.push 'color-use'
@@ -502,7 +456,42 @@ cancelEvent = (e) ->
 
 # main
 main = ->
-  palette = new Palette()
+  colors = [
+    ['Black',              33,  33,  33, true]
+    ['Dark Gray',         107,  90,  90, true]
+    ['Light Gray',        156, 156, 156, true]
+    ['Very Light Gray',   232, 232, 232, true, true]
+    ['White',             255, 255, 255, true]
+    ['Dark Bluish Gray',   89,  93,  96]
+    ['Light Bluish Gray', 175, 181, 199]
+    ['Blue',                0,  87, 166]
+    ['Red',               179,   0,   6]
+    ['Yellow',            247, 209,  23]
+    ['Green',               0, 100,  46]
+    ['Tan',               222, 198, 156]
+    ['Reddish Brown',     137,  53,  29]
+    ['Dark Blue',          20,  48,  68]
+    ['Bright Pink',       243, 154, 194]
+    ['Brown',              83,  33,  21]
+    ['Dark Purple',        95,  38, 131]
+    ['Dark Red',          106,  14,  21]
+    ['Dark Tan',          144, 116,  80]
+    ['Dark Turquoise',      0, 138, 128]
+    ['Lime',              166, 202,  85]
+    ['Maersk Blue',       107, 173, 214]
+    ['Medium Blue',        97, 175, 255]
+    ['Medium Lavender',   181, 165, 213]
+    ['Medium Orange',     255, 165,  49]
+    ['Orange',            255, 126,  20]
+    ['Pink',              255, 199, 225]
+    ['Purple',            165,  73, 156]
+    ['Sand Blue',          90, 113, 132]
+    ['Sand Green',        118, 162, 144]
+  ]
+  palette = new Palette(
+    for [name, r, g, b, use, checked] in colors
+      { name, color: new Color(r, g, b), use, checked }
+  )
   new PaletteView(palette, $ 'palette')
 
   ctx = $('canv').getContext '2d'

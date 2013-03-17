@@ -110,6 +110,17 @@ header {
 
   }
 }
+#amount {
+  padding: 0;
+  list-style: none;
+
+  .color-box {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    margin: 0 4px 0 0;
+  }
+}
 #render-button {
   @extend %button;
   margin: auto;

@@ -11,9 +11,9 @@
 <div id="form" class="inputs content">
   <label>幅 <input type="number" name="width" value="48" min="1"></label>
   
-  <label><input type="radio" name="unitHeight" value="2" checked> プレート積み</label>
-  <label><input type="radio" name="unitHeight" value="5"> 並べ</label>
-  <label><input type="radio" name="unitHeight" value="6"> ブロック積み</label>
+  <label><input type="radio" name="mode" value="stack-plate" checked> プレート積み</label>
+  <label><input type="radio" name="mode" value="stack-brick"> ブロック積み</label>
+  <label><input type="radio" name="mode" value="lay"> 並べ</label>
 
   <label>明るさ <input type="range" name="brightness"
     min="-1.5" max="1.5" step="any" value="0" list="zero"></label>
@@ -33,4 +33,5 @@
 <div class="content">
   ここにファイルをドラッグ &amp; ドロップします
   <canvas id="canv" width="1" height="1"></canvas>
+  <ul id="amount"></ul>
 </div>

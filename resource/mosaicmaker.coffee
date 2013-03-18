@@ -1,3 +1,25 @@
+# create imagedata from array of (array of colors)
+colorsToCanvas = do ->
+  ctx = document.createElement('canvas').getContext '2d'
+  (ary) ->
+    if arguments.length is 3
+      [width, height, ary] = arguments
+    else
+      [width, height] = [ary.length, ary[0].length]
+    ctx.canvas.width  = width
+    ctx.canvas.height = height
+    idata = ctx.createImageData(width, height)
+    for inner, x in ary
+      if 'length' not of inner
+        inner = [inner]
+      for color, y in inner
+        idata.data.set([
+          color.r, color.g, color.b, 255
+        ], (x + y * width) << 2)
+    ctx.putImageData(idata, 0, 0)
+    ctx.canvas
+
+
 class ImageProcessorOption extends Assoc
   init: (@proc) ->
 
@@ -54,19 +76,20 @@ class ImageProcessor extends Model
       .draw().gl.canvas
 
   _reduceColor: ->
-    colors = @palette.colors
+    colors = (c.color for c in @palette.colors when c.use)
     if @option.get 'dither'
       program = @program.reduceColorDithered
+      colors = 
       colorCanv = colorsToCanvas(128, 2,
         SuperArray::combinations.call(
-          (c.color for c in colors when c.use), 2
+          colors.sort((a, b) -> a.luma() - b.luma()), 2
         ).sort(
           ([a1, a2], [b1, b2]) -> a1.dist(a2) - b1.dist(b2)
         ).slice(0, 128)
       )
     else
       program = @program.reduceColor
-      colorCanv = colorsToCanvas 32, 1, ([c.color] for c in colors when c.use)
+      colorCanv = colorsToCanvas 32, 1, colors
     
     # draw on canvas: @colorReduced
     canv = @colorReduced.canvas
@@ -170,7 +193,7 @@ class PaletteView extends View
     frag = document.createDocumentFragment()
     for c in model.colors
       li = document.createElement 'li'
-      li.style.backgroundColor = c.color.toString()
+      li.style.backgroundColor = c.color
       li.dataset.name = c.name
       frag.appendChild li
     elem.appendChild frag
@@ -196,7 +219,10 @@ class PaletteView extends View
       if color.use
         classes.push 'color-use'
       if color.checked
-        classes.push 'color-checked'
+        if color.color.luma() < 128
+          classes.push 'color-checked-dark'
+        else
+          classes.push 'color-checked-light'
       li.className = classes.join ' '
 
 

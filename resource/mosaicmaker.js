@@ -142,31 +142,6 @@
 
   })();
 
-  colorsToCanvas = (function() {
-    var ctx;
-    ctx = document.createElement('canvas').getContext('2d');
-    return function(ary) {
-      var color, height, idata, inner, width, x, y, _i, _j, _len, _len1, _ref;
-      if (arguments.length === 3) {
-        width = arguments[0], height = arguments[1], ary = arguments[2];
-      } else {
-        _ref = [ary.length, ary[0].length], width = _ref[0], height = _ref[1];
-      }
-      ctx.canvas.width = width;
-      ctx.canvas.height = height;
-      idata = ctx.createImageData(width, height);
-      for (x = _i = 0, _len = ary.length; _i < _len; x = ++_i) {
-        inner = ary[x];
-        for (y = _j = 0, _len1 = inner.length; _j < _len1; y = ++_j) {
-          color = inner[y];
-          idata.data.set([color.r, color.g, color.b, 255], (x + y * width) << 2);
-        }
-      }
-      ctx.putImageData(idata, 0, 0);
-      return ctx.canvas;
-    };
-  })();
-
   Assoc = (function(_super) {
 
     __extends(Assoc, _super);
@@ -265,6 +240,34 @@
       }
     }
   };
+
+  colorsToCanvas = (function() {
+    var ctx;
+    ctx = document.createElement('canvas').getContext('2d');
+    return function(ary) {
+      var color, height, idata, inner, width, x, y, _i, _j, _len, _len1, _ref;
+      if (arguments.length === 3) {
+        width = arguments[0], height = arguments[1], ary = arguments[2];
+      } else {
+        _ref = [ary.length, ary[0].length], width = _ref[0], height = _ref[1];
+      }
+      ctx.canvas.width = width;
+      ctx.canvas.height = height;
+      idata = ctx.createImageData(width, height);
+      for (x = _i = 0, _len = ary.length; _i < _len; x = ++_i) {
+        inner = ary[x];
+        if (!('length' in inner)) {
+          inner = [inner];
+        }
+        for (y = _j = 0, _len1 = inner.length; _j < _len1; y = ++_j) {
+          color = inner[y];
+          idata.data.set([color.r, color.g, color.b, 255], (x + y * width) << 2);
+        }
+      }
+      ctx.putImageData(idata, 0, 0);
+      return ctx.canvas;
+    };
+  })();
 
   ImageProcessorOption = (function(_super) {
 
@@ -368,20 +371,23 @@
 
     ImageProcessor.prototype._reduceColor = function() {
       var c, canv, colorCanv, colors, program;
-      colors = this.palette.colors;
+      colors = (function() {
+        var _i, _len, _ref, _results;
+        _ref = this.palette.colors;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          c = _ref[_i];
+          if (c.use) {
+            _results.push(c.color);
+          }
+        }
+        return _results;
+      }).call(this);
       if (this.option.get('dither')) {
         program = this.program.reduceColorDithered;
-        colorCanv = colorsToCanvas(128, 2, SuperArray.prototype.combinations.call((function() {
-          var _i, _len, _results;
-          _results = [];
-          for (_i = 0, _len = colors.length; _i < _len; _i++) {
-            c = colors[_i];
-            if (c.use) {
-              _results.push(c.color);
-            }
-          }
-          return _results;
-        })(), 2).sort(function(_arg, _arg1) {
+        colors = colorCanv = colorsToCanvas(128, 2, SuperArray.prototype.combinations.call(colors.sort(function(a, b) {
+          return a.luma() - b.luma();
+        }), 2).sort(function(_arg, _arg1) {
           var a1, a2, b1, b2;
           a1 = _arg[0], a2 = _arg[1];
           b1 = _arg1[0], b2 = _arg1[1];
@@ -389,17 +395,7 @@
         }).slice(0, 128));
       } else {
         program = this.program.reduceColor;
-        colorCanv = colorsToCanvas(32, 1, (function() {
-          var _i, _len, _results;
-          _results = [];
-          for (_i = 0, _len = colors.length; _i < _len; _i++) {
-            c = colors[_i];
-            if (c.use) {
-              _results.push([c.color]);
-            }
-          }
-          return _results;
-        })());
+        colorCanv = colorsToCanvas(32, 1, colors);
       }
       canv = this.colorReduced.canvas;
       canv.width = this.width = this.option.get('width');
@@ -537,7 +533,7 @@
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         c = _ref[_i];
         li = document.createElement('li');
-        li.style.backgroundColor = c.color.toString();
+        li.style.backgroundColor = c.color;
         li.dataset.name = c.name;
         frag.appendChild(li);
       }
@@ -572,7 +568,11 @@
           classes.push('color-use');
         }
         if (color.checked) {
-          classes.push('color-checked');
+          if (color.color.luma() < 128) {
+            classes.push('color-checked-dark');
+          } else {
+            classes.push('color-checked-light');
+          }
         }
         _results.push(li.className = classes.join(' '));
       }

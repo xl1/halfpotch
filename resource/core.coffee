@@ -59,25 +59,6 @@ class Color
   toArray: -> [@r, @g, @b]
   toString: -> "rgb(#{@r}, #{@g}, #{@b})"
 
-# create imagedata from array of (array of colors)
-colorsToCanvas = do ->
-  ctx = document.createElement('canvas').getContext '2d'
-  (ary) ->
-    if arguments.length is 3
-      [width, height, ary] = arguments
-    else
-      [width, height] = [ary.length, ary[0].length]
-    ctx.canvas.width  = width
-    ctx.canvas.height = height
-    idata = ctx.createImageData(width, height)
-    for inner, x in ary
-      for color, y in inner
-        idata.data.set([
-          color.r, color.g, color.b, 255
-        ], (x + y * width) << 2)
-    ctx.putImageData(idata, 0, 0)
-    ctx.canvas
-
 
 class Assoc extends Model
   constructor: (@map={}) -> super()

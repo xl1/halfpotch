@@ -31,11 +31,19 @@ constants =
         varying vec2 v_texCoord;
       
         const int COMBINATIONS = 128;
+        const float GAMMA = 2.2;
+
+        vec4 gamma(vec4 color){
+          return pow(color, vec4(GAMMA));
+        }
+        vec4 ungamma(vec4 color){
+          return pow(color, vec4(1.0 / GAMMA));
+        }
         
         void getColors(in int idx, out vec4 c1, out vec4 c2){
           float x = (0.5 + float(idx)) / float(COMBINATIONS);
-          c1 = texture2D(u_colors, vec2(x, 0.0));
-          c2 = texture2D(u_colors, vec2(x, 2.0));
+          c1 = gamma(texture2D(u_colors, vec2(x, 0.0)));
+          c2 = gamma(texture2D(u_colors, vec2(x, 2.0)));
         }
         float dist(vec4 srcColor, vec4 color){
           float d = distance(srcColor, color);
@@ -93,13 +101,13 @@ constants =
         }
         vec4 getSourceColor(){
           vec4 col = texture2D(u_source, v_texCoord);
-          return vec4(
+          return gamma(vec4(
             filterComponent(col.r), filterComponent(col.g),
             filterComponent(col.b), 1.0
-          );
+          ));
         }
         void main(){
-          gl_FragColor = dither(getSourceColor());
+          gl_FragColor = ungamma(dither(getSourceColor()));
         }
       """
       reduceColor: """
@@ -114,10 +122,18 @@ constants =
         varying vec2 v_texCoord;
         
         const int COLORLEN = 32;
+        const float GAMMA = 2.2;
+
+        vec4 gamma(vec4 color){
+          return pow(color, vec4(GAMMA));
+        }
+        vec4 ungamma(vec4 color){
+          return pow(color, vec4(1.0 / GAMMA));
+        }
         
         vec4 getColor(int idx){
           float x = (0.5 + float(idx)) / float(COLORLEN);
-          return texture2D(u_colors, vec2(x, 0.5));
+          return gamma(texture2D(u_colors, vec2(x, 0.5)));
         }
         float dist(vec4 srcColor, vec4 color){
           float d = distance(srcColor, color);
@@ -149,13 +165,13 @@ constants =
         }
         vec4 getSourceColor(){
           vec4 col = texture2D(u_source, v_texCoord);
-          return vec4(
+          return gamma(vec4(
             filterComponent(col.r), filterComponent(col.g),
             filterComponent(col.b), 1.0
-          );
+          ));
         }
         void main(){
-          gl_FragColor = nearest(getSourceColor());
+          gl_FragColor = ungamma(nearest(getSourceColor()));
         }
       """
       blueprint: """

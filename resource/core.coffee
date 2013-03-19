@@ -80,7 +80,7 @@ class FormView extends View
     # input.type is regarded as "text"
     switch input.getAttribute('type')?.toLowerCase()
       when 'number', 'range'
-        @model.set name, +value
+        @model.set name, +value or 0
       when 'date', 'datetime-local'
         @model.set name, new Date(value)
       when 'checkbox'

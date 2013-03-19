@@ -39,12 +39,10 @@ class Model
     @_uuid = uuid()
   change: ->
     eve "#{@_uuid}.change"
-  onChange: (func) ->
-    eve.on "#{@_uuid}.change", func
 
 class View
   constructor: (@model) ->
-    model.onChange @render.bind @
+    eve.on "#{model._uuid}.change", => @render()
   render: ->
 
 
@@ -70,21 +68,28 @@ class Assoc extends Model
 class FormView extends View
   constructor: (model, @elem) ->
     super model
-    HTMLFormElement::addEventListener.call elem, 'change', (e) ->
-      { name, value } = e.target
-      switch e.target.type
-        when 'number', 'range'
-          model.set name, +value
-        when 'date', 'datetime-local'
-          model.set name, new Date(value)
-        when 'checkbox'
-          model.set name, e.target.checked
-        when 'radio'
-          if e.target.checked
-            model.set name, value
-        else
-          model.set name, value
+    for input in HTMLFormElement::querySelectorAll.call elem, '[name]'
+      @_setValue input
+    HTMLFormElement::addEventListener.call elem, 'change', (e) =>
+      @_setValue e.target
     , false
+
+  _setValue: (input) ->
+    { name, value } = input
+    # if type is not supported (e.g. "number" on Firefox 20),
+    # input.type is regarded as "text"
+    switch input.getAttribute('type')?.toLowerCase()
+      when 'number', 'range'
+        @model.set name, +value
+      when 'date', 'datetime-local'
+        @model.set name, new Date(value)
+      when 'checkbox'
+        @model.set name, input.checked
+      when 'radio'
+        if input.checked
+          @model.set name, value
+      else
+        @model.set name, value
 
 #  render: ->
 #    for name in @model.keys()

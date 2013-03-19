@@ -91,10 +91,6 @@
       return eve("" + this._uuid + ".change");
     };
 
-    Model.prototype.onChange = function(func) {
-      return eve.on("" + this._uuid + ".change", func);
-    };
-
     return Model;
 
   })();
@@ -102,8 +98,11 @@
   View = (function() {
 
     function View(model) {
+      var _this = this;
       this.model = model;
-      model.onChange(this.render.bind(this));
+      eve.on("" + model._uuid + ".change", function() {
+        return _this.render();
+      });
     }
 
     View.prototype.render = function() {};
@@ -173,30 +172,41 @@
     __extends(FormView, _super);
 
     function FormView(model, elem) {
+      var input, _i, _len, _ref,
+        _this = this;
       this.elem = elem;
       FormView.__super__.constructor.call(this, model);
+      _ref = HTMLFormElement.prototype.querySelectorAll.call(elem, '[name]');
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        input = _ref[_i];
+        this._setValue(input);
+      }
       HTMLFormElement.prototype.addEventListener.call(elem, 'change', function(e) {
-        var name, value, _ref;
-        _ref = e.target, name = _ref.name, value = _ref.value;
-        switch (e.target.type) {
-          case 'number':
-          case 'range':
-            return model.set(name, +value);
-          case 'date':
-          case 'datetime-local':
-            return model.set(name, new Date(value));
-          case 'checkbox':
-            return model.set(name, e.target.checked);
-          case 'radio':
-            if (e.target.checked) {
-              return model.set(name, value);
-            }
-            break;
-          default:
-            return model.set(name, value);
-        }
+        return _this._setValue(e.target);
       }, false);
     }
+
+    FormView.prototype._setValue = function(input) {
+      var name, value, _ref;
+      name = input.name, value = input.value;
+      switch ((_ref = input.getAttribute('type')) != null ? _ref.toLowerCase() : void 0) {
+        case 'number':
+        case 'range':
+          return this.model.set(name, +value);
+        case 'date':
+        case 'datetime-local':
+          return this.model.set(name, new Date(value));
+        case 'checkbox':
+          return this.model.set(name, input.checked);
+        case 'radio':
+          if (input.checked) {
+            return this.model.set(name, value);
+          }
+          break;
+        default:
+          return this.model.set(name, value);
+      }
+    };
 
     return FormView;
 
@@ -282,7 +292,7 @@
     };
 
     ImageProcessorOption.prototype.set = function(name, value) {
-      var _ref;
+      var _ref, _ref1;
       this.map[name] = value;
       if (name === 'mode') {
         _ref = ((function() {
@@ -300,7 +310,7 @@
         this.map.height = this.map.width * this.map.unitSize[0] / this.map.unitSize[1];
       }
       this.change();
-      return this.proc.render();
+      return (_ref1 = this.proc) != null ? _ref1.render() : void 0;
     };
 
     ImageProcessorOption.prototype.get = function(name) {

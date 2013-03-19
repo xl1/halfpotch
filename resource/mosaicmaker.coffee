@@ -35,7 +35,7 @@ class ImageProcessorOption extends Assoc
     if name is 'mode' or name is 'width'
       @map.height = @map.width * @map.unitSize[0] / @map.unitSize[1]
     @change()
-    @proc.render()
+    @proc?.render()
 
   get: (name) ->
     switch name

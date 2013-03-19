@@ -1,0 +1,12 @@
+{
+  "before_tests":
+    "coffee -cj test/all.js resource/core.coffee test/core.spec.coffee && coffee -cj resource/mosaicmaker.js resource/core.coffee resource/constants.coffee resource/mosaicmaker.coffee",
+  "src_files": [
+    "resource/core.coffee",
+    "test/core.spec.coffee"
+  ],
+  "serve_files": [
+    "eve/eve.js",
+    "test/all.js"
+  ]
+}

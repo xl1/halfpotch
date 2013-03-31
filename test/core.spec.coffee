@@ -70,6 +70,11 @@ describe 'Model and View', ->
     expect(view1.render).toHaveBeenCalled()
     expect(view2.render).toHaveBeenCalled()
 
+  it 'Model#change() should pass the arguments to View#render()', ->
+    spyOn(view1, 'render')
+    model.change('change', 1, 2, 3)
+    expect(view1.render).toHaveBeenCalledWith(1, 2, 3)
+
 
 describe 'FormView', ->
   form = document.createElement 'form'

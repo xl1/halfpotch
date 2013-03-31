@@ -2,7 +2,8 @@
 (function() {
   var $, Assoc, Color, FormView, ImageProcessor, ImageProcessorOption, Model, Palette, PaletteView, PartsAmountView, RendererView, SuperArray, View, cancelEvent, colorsToCanvas, constants, main, uuid,
     __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    __slice = [].slice;
 
   $ = function(id) {
     return document.getElementById(id);
@@ -88,7 +89,23 @@
     }
 
     Model.prototype.change = function() {
-      return eve("" + this._uuid + ".change");
+      var arg, name;
+      name = arguments[0], arg = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+      if (name == null) {
+        name = 'change';
+      }
+      return eve.apply(null, ["" + this._uuid + "." + name, null].concat(__slice.call(arg)));
+    };
+
+    Model.prototype.listen = function(name, func) {
+      if (name == null) {
+        name = 'change';
+      }
+      if (arguments.length === 1) {
+        func = name;
+        name = 'change';
+      }
+      return eve.on("" + this._uuid + "." + name, func);
     };
 
     return Model;
@@ -100,8 +117,10 @@
     function View(model) {
       var _this = this;
       this.model = model;
-      eve.on("" + model._uuid + ".change", function() {
-        return _this.render();
+      model.listen(function() {
+        var arg;
+        arg = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+        return _this.render.apply(_this, arg);
       });
     }
 

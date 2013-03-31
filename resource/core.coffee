@@ -37,12 +37,17 @@ uuid = do ->
 class Model
   constructor: ->
     @_uuid = uuid()
-  change: ->
-    eve "#{@_uuid}.change"
+  change: (name='change', arg...) ->
+    eve "#{@_uuid}.#{name}", null, arg...
+  listen: (name='change', func) ->
+    if arguments.length is 1
+      func = name
+      name = 'change'
+    eve.on "#{@_uuid}.#{name}", func
 
 class View
   constructor: (@model) ->
-    eve.on "#{model._uuid}.change", => @render()
+    model.listen (arg...) => @render(arg...)
   render: ->
 
 

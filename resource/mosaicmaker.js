@@ -195,12 +195,12 @@
         _this = this;
       this.elem = elem;
       FormView.__super__.constructor.call(this, model);
-      _ref = HTMLFormElement.prototype.querySelectorAll.call(elem, '[name]');
+      _ref = HTMLElement.prototype.querySelectorAll.call(elem, '[name]');
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         input = _ref[_i];
         this._setValue(input);
       }
-      HTMLFormElement.prototype.addEventListener.call(elem, 'change', function(e) {
+      HTMLElement.prototype.addEventListener.call(elem, 'change', function(e) {
         return _this._setValue(e.target);
       }, false);
     }

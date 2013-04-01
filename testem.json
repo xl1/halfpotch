@@ -1,6 +1,6 @@
 {
   "before_tests":
-    "coffee -cj test/all.js resource/core.coffee test/core.spec.coffee && coffee -cj resource/mosaicmaker.js resource/core.coffee resource/constants.coffee resource/mosaicmaker.coffee",
+    "coffee -cj test/all.js resource/core.coffee test/core.spec.coffee && coffee -cj resource/mosaicmaker.js resource/core.coffee resource/constants.coffee resource/mosaicmaker.coffee && coffee -cj resource/optimizer.js resource/core.coffee resource/retention.coffee resource/dataloader.coffee resource/optimizer.coffee",
   "src_files": [
     "resource/core.coffee",
     "test/core.spec.coffee"

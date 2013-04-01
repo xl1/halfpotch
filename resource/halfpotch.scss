@@ -45,6 +45,7 @@ header {
 
 .content {
   height: 100%;
+  height: 100vh;
   margin-top: -32px;
   float: left;
   padding: 37px 20px 0 20px;
@@ -133,4 +134,25 @@ header {
 #render-button {
   @extend %button;
   margin: auto;
+}
+
+.select {
+  height: 100vh;
+  margin-top: -32px;
+  float: left;
+  width: 24vw;
+  padding: 32px 0 0 0;
+  overflow-y: auto;
+
+  input {
+    display: none;
+  }
+  label {
+    display: block;
+    border-bottom: 1px solid #ccc;
+    padding: 0 12px 0 12px;
+    &:hover {
+      cursor: pointer;
+    }
+  }
 }

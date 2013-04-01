@@ -73,9 +73,9 @@ class Assoc extends Model
 class FormView extends View
   constructor: (model, @elem) ->
     super model
-    for input in HTMLFormElement::querySelectorAll.call elem, '[name]'
+    for input in HTMLElement::querySelectorAll.call elem, '[name]'
       @_setValue input
-    HTMLFormElement::addEventListener.call elem, 'change', (e) =>
+    HTMLElement::addEventListener.call elem, 'change', (e) =>
       @_setValue e.target
     , false
 

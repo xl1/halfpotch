@@ -93,27 +93,57 @@ header {
 #amount {
   padding: 0;
   list-style: none; }
-  #amount .color-box {
-    display: inline-block;
-    width: 1em;
-    height: 1em;
-    margin: 0 4px 0 0; }
+
+.color-box {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin: 0 4px 0 0; }
 
 #render-button {
   margin: auto; }
 
+#form {
+  height: calc(100% - 32px); }
+
+.column {
+  height: 100%;
+  float: left; }
+  .column:nth-child(2n) {
+    width: 30%; }
+  .column:nth-child(2n-1) {
+    width: 20%; }
+
 .select {
-  height: 100vh;
-  margin-top: -32px;
-  float: left;
-  width: 24vw;
-  padding: 32px 0 0 0;
-  overflow-y: auto; }
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow-y: auto;
+  list-style: none; }
   .select input {
     display: none; }
   .select label {
     display: block;
-    border-bottom: 1px solid #cccccc;
     padding: 0 12px 0 12px; }
-    .select label:hover {
-      cursor: pointer; }
+  .select label:hover {
+    background-color: #ccc;
+    cursor: pointer; }
+  .select li {
+    border-bottom: 1px solid #cccccc; }
+  .select input:checked + label {
+    background-color: #37a;
+    color: #f8f8f8; }
+
+#image {
+  height: 15%;
+  margin-bottom: 5%;
+  text-align: center; }
+  #image img {
+    height: 100%;
+    max-height: 120px; }
+
+#colorSelect {
+  height: 80%; }
+
+#cart {
+  max-height: calc(100% - 32px - 32px); }

@@ -123,36 +123,73 @@ header {
 #amount {
   padding: 0;
   list-style: none;
-
-  .color-box {
-    display: inline-block;
-    width: 1em;
-    height: 1em;
-    margin: 0 4px 0 0;
-  }
+}
+.color-box {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin: 0 4px 0 0;
 }
 #render-button {
   @extend %button;
   margin: auto;
 }
 
-.select {
-  height: 100vh;
-  margin-top: -32px;
+#form {
+  height: calc(#{unquote('100% - 32px')});
+}
+
+.column {
+  height: 100%;
   float: left;
-  width: 24vw;
-  padding: 32px 0 0 0;
+
+  &:nth-child(2n) {
+    width: 30%;
+  }
+  &:nth-child(2n-1) {
+    width: 20%;
+  }
+}
+
+.select {
+  margin: 0;
+  padding: 0;
+  height: 100%;
   overflow-y: auto;
+  list-style: none;
 
   input {
     display: none;
   }
   label {
     display: block;
-    border-bottom: 1px solid #ccc;
     padding: 0 12px 0 12px;
-    &:hover {
-      cursor: pointer;
-    }
   }
+  label:hover {
+    background-color: #ccc;
+    cursor: pointer;
+  }
+  li {
+    border-bottom: 1px solid #ccc;
+  }
+  input:checked + label {
+    background-color: #37a;
+    color: #f8f8f8;
+  }
+}
+#image {
+  height: 15%;
+  margin-bottom: 5%;
+  text-align: center;
+  img {
+    height: 100%;
+    max-height: 120px;
+  }
+}
+#colorSelect {
+  height: 80%;
+}
+#cart {
+  $height: unquote('100% - 32px - 32px');
+  max-height: calc(#{$height});
 }

@@ -1,6 +1,12 @@
 # utilities
 $ = (id) -> document.getElementById id
 
+escapeHTML = do ->
+  re = /[&<>'"]/g
+  replacer = (x) -> x.charCodeAt(0)
+  (text) -> text.replace(re, replacer)
+
+
 class SuperArray extends Array
   constructor: (ary=[]) -> Array::push.apply(@, ary)
 
@@ -43,7 +49,7 @@ class Model
     if arguments.length is 1
       func = name
       name = 'change'
-    eve.on "#{@_uuid}.#{name}", func
+    eve.on "#{@_uuid}.#{name}", func.bind(@)
 
 class View
   constructor: (@model) ->

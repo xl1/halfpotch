@@ -25,12 +25,14 @@ class DataLoader
 
     # 処理するの、xhr する時間に比べたら一瞬で終わるし全部ロードしてからでいい
     IF(colorsData.AND codesData.AND partsData) ->
-      for [colorId, colorName] in colorsData.result
+      for [colorId, colorName, rrggbb] in colorsData.result
         colors[colorId] = colorNames[colorName] =
-          { id: colorId, name: colorName }
+          { id: colorId, name: colorName, rgb: '#' + rrggbb }
       for [id, colorName] in codesData.result
         part = parts[id] or= { id, colors: [] }
-        part.colors.push colorNames[colorName]
+        color = colorNames[colorName]
+        if color not in part.colors
+          part.colors.push color
       for [categoryId, categoryName, id, name] in partsData.result
         part = parts[id]
         continue unless part

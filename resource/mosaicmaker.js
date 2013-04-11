@@ -177,20 +177,20 @@
 
     function Assoc(map) {
       this.map = map != null ? map : {};
-      Assoc.__super__.constructor.call(this);
+      Assoc.__super__.constructor.apply(this, arguments);
     }
 
     Assoc.prototype.keys = function() {
       return Object.keys(this.map);
     };
 
-    Assoc.prototype.set = function(name, value) {
-      this.map[name] = value;
-      return this.change();
-    };
-
     Assoc.prototype.get = function(name) {
       return this.map[name];
+    };
+
+    Assoc.prototype.set = function(name, value) {
+      this.map[name] = value;
+      return this.change('change', name, value);
     };
 
     return Assoc;
@@ -205,7 +205,7 @@
       var input, _i, _len, _ref,
         _this = this;
       this.elem = elem;
-      FormView.__super__.constructor.call(this, model);
+      FormView.__super__.constructor.apply(this, arguments);
       _ref = HTMLElement.prototype.querySelectorAll.call(elem, '[name]');
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         input = _ref[_i];
@@ -235,6 +235,37 @@
           break;
         default:
           return this.model.set(name, value);
+      }
+    };
+
+    FormView.prototype.render = function() {
+      var input, inputs, name, value, _i, _j, _len, _len1, _ref;
+      _ref = this.model.keys();
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        name = _ref[_i];
+        inputs = HTMLFormElement.prototype.querySelectorAll.call(this.elem, "[name=" + name + "]");
+        if (!inputs.length) {
+          continue;
+        }
+        value = this.model.get(name);
+        switch (inputs[0].type) {
+          case 'checkbox':
+            inputs[0].checked = value;
+            break;
+          case 'radio':
+            value = value.toString();
+            for (_j = 0, _len1 = inputs.length; _j < _len1; _j++) {
+              input = inputs[_j];
+              if (!(input.value === value)) {
+                continue;
+              }
+              input.checked = true;
+              break;
+            }
+            break;
+          default:
+            inputs[0].value = value;
+        }
       }
     };
 
@@ -377,7 +408,7 @@
       var name, _i, _len, _ref;
       this.option = option;
       this.palette = palette;
-      ImageProcessor.__super__.constructor.call(this);
+      ImageProcessor.__super__.constructor.apply(this, arguments);
       this._gl = new MicroGL({
         antialias: false
       });
@@ -567,7 +598,7 @@
     function PaletteView(model, elem) {
       var c, frag, li, _i, _len, _ref;
       this.elem = elem;
-      PaletteView.__super__.constructor.call(this, model);
+      PaletteView.__super__.constructor.apply(this, arguments);
       frag = document.createDocumentFragment();
       _ref = model.colors;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -629,7 +660,7 @@
 
     function PartsAmountView(model, elem) {
       this.elem = elem;
-      PartsAmountView.__super__.constructor.call(this, model);
+      PartsAmountView.__super__.constructor.apply(this, arguments);
       this.render();
     }
 
@@ -671,7 +702,7 @@
 
     function RendererView(model, elem) {
       this.elem = elem;
-      RendererView.__super__.constructor.call(this, model);
+      RendererView.__super__.constructor.apply(this, arguments);
       this._ctx = elem.getContext('2d');
     }
 

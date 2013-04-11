@@ -36,9 +36,10 @@ class DataLoader
       for [categoryId, categoryName, id, name] in partsData.result
         part = parts[id]
         continue unless part
-        part.name = name
         category = categories[categoryId] or=
           { id: categoryId, name: categoryName, parts: [] }
+        part.name = name
+        part.categoryId = categoryId
         category.parts.push part
 
       callback({ categories, parts, colors })

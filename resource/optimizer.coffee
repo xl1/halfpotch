@@ -1,18 +1,6 @@
-class Cart extends Model
-  constructor: ->
-    super()
-    @select = new SelectModel('cart')
-
-  register: (part, color, amount) ->
-    if part and color and amount
-      @select.add { id: uuid(), part, color, amount }
-  
-  calculate: ->
-
-
 class SelectModel extends Model # window.Select is reserved
   constructor: (@type) ->
-    super()
+    super
     @item = null
     @options = []
 
@@ -29,21 +17,27 @@ class SelectModel extends Model # window.Select is reserved
     if change
       @change 'add', item
 
+  remove: ->
+    item = @item
+    @item = null
+    idx = @options.indexOf item
+    @options.splice(idx, 1)
+    @change()
+    item
+
   setItem: (id) ->
     for option in @options
       if option.id is id
         @item = option
         @change 'select', option
         return
+    return
 
 
 class SelectView extends View
   constructor: (model, @elem) ->
-    super model
+    super
     model.listen 'add', @add.bind @
-    elem.addEventListener 'change', (e) ->
-      model.setItem e.target.value
-    , false
 
   _createLi: (item) ->
     type = escapeHTML @model.type
@@ -96,7 +90,7 @@ class CartSelectView extends SelectView
 
 class PartImageView extends View
   constructor: (model, @elem) ->
-    super model
+    super
     img = document.createElement 'img'
     elem.appendChild img
     model.listen 'select', (item) ->
@@ -107,34 +101,59 @@ class PartImageView extends View
       img.src = "http://img.bricklink.com/P/#{colorId}/#{item.id}.gif"
 
 
-main = ->
+do ->
   categorySelect = new SelectModel 'category'
   partSelect     = new SelectModel 'part'
   colorSelect    = new SelectModel 'color'
-  cart           = new Cart()
-  form           = new Assoc()
-  new SelectView(categorySelect, $('categorySelect'))
-  new SelectView(partSelect, $('partSelect'))
-  new PartImageView(partSelect, $('image'))
-  new ColorSelectView(colorSelect, $('colorSelect'))
-  new CartSelectView(cart.select, $('cart'))
-  new FormView(form, $('form'))
+  cartSelect     = new SelectModel 'cart'
+  cart           = new Assoc()
 
-  categorySelect.listen 'select', (category) ->
-    partSelect.reset category.parts
-    colorSelect.reset []
-  partSelect.listen 'select', (part) ->
-    colorSelect.reset part.colors
+  cart.listen (type, id) ->
+    switch type
+      when 'category'
+        categorySelect.setItem(id)
+        partSelect.reset(categorySelect.item.parts)
+        colorSelect.reset []
+      when 'part'
+        partSelect.setItem(id)
+        colorSelect.reset(partSelect.item.colors)
+      when 'color'
+        colorSelect.setItem(id)
+      when 'cart'
+        cartSelect.setItem(id)
 
-  $('addButton').addEventListener 'click', ->
-    cart.register(partSelect.item, colorSelect.item, form.get('amount'))
-  , false
-  $('calculateButton').addEventListener 'click', ->
-    cart.calculate()
+  addItem = ->
+    part = partSelect.item
+    color = colorSelect.item
+    amount = cart.get 'amount'
+    if part and color and amount
+      cartSelect.add { id: uuid(), part, color, amount }
+  removeItem = ->
+    cartSelect.remove()
+  editItem = ->
+    item = removeItem()
+    return unless item
+    { part, color, amount } = item
+    cart.set 'category', part.categoryId
+    cart.set 'part', part.id
+    cart.set 'color', color.id
+    cart.set 'amount', amount
+  calculate = ->
+
+
+  document.addEventListener 'DOMContentLoaded', ->
+    new SelectView(categorySelect, $('categorySelect'))
+    new SelectView(partSelect, $('partSelect'))
+    new PartImageView(partSelect, $('image'))
+    new ColorSelectView(colorSelect, $('colorSelect'))
+    new CartSelectView(cartSelect, $('cart'))
+    new FormView(cart, $('form'))
+
+    $('addButton').addEventListener 'click', addItem, false
+    $('editButton').addEventListener 'click', editItem, false
+    $('removeButton').addEventListener 'click', removeItem, false
+    $('calculateButton').addEventListener 'click', calculate, false
   , false
 
   new DataLoader().load (data) ->
     categorySelect.reset data.categories
-
-
-document.addEventListener 'DOMContentLoaded', main, false

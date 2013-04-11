@@ -52,7 +52,7 @@ class ImageProcessor extends Model
   fshader: constants.mosaic.fshader
 
   constructor: (@option, @palette) ->
-    super()
+    super
     @_gl = new MicroGL(antialias: false)
     for name in Object.keys @fshader
       @program[name] = @_gl.makeProgram(@vshader, @fshader[name])
@@ -188,7 +188,7 @@ class Palette extends Model
 
 class PaletteView extends View
   constructor: (model, @elem) ->
-    super model
+    super
 
     frag = document.createDocumentFragment()
     for c in model.colors
@@ -228,7 +228,7 @@ class PaletteView extends View
 
 class PartsAmountView extends View
   constructor: (model, @elem) ->
-    super model
+    super
     @render()
 
   _createLi: ({ name, color, amount }) ->
@@ -251,7 +251,7 @@ class PartsAmountView extends View
 class RendererView extends View
   rendered: false
   constructor: (model, @elem) ->
-    super model
+    super
     @_ctx = elem.getContext '2d'
 
   show: (file) ->

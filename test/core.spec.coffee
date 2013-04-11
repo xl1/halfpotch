@@ -101,8 +101,6 @@ describe 'FormView', ->
   it 'should change assoc if form is changed', ->
     expect(assoc.get 'foo').toBe 'bar'
     expect(assoc.get 'rad').toBe '1'
-    form.foo.value = 'hoge'
-    form.rad[1].checked = true
 
     # custom events on an element that doesnt belong to the document tree
     # dont bubble on Chrome 27
@@ -112,7 +110,9 @@ describe 'FormView', ->
       # dispatch change event
       e = document.createEvent('HTMLEvents')
       e.initEvent 'change', true, true
+      form.foo.value = 'hoge'
       form.foo.dispatchEvent(e)
+      form.rad[1].checked = true
       form.rad[1].dispatchEvent(e)
       expect(assoc.get 'foo').toBe 'hoge'
       expect(assoc.get 'rad').toBe '2'

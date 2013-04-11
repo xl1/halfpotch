@@ -70,15 +70,17 @@ class Color
 
 
 class Assoc extends Model
-  constructor: (@map={}) -> super()
+  constructor: (@map={}) -> super
   keys: -> Object.keys @map
-  set: (name, value) -> @map[name] = value; @change()
   get: (name) -> @map[name]
+  set: (name, value) ->
+    @map[name] = value
+    @change('change', name, value)
 
 
 class FormView extends View
   constructor: (model, @elem) ->
-    super model
+    super
     for input in HTMLElement::querySelectorAll.call elem, '[name]'
       @_setValue input
     HTMLElement::addEventListener.call elem, 'change', (e) =>
@@ -102,19 +104,19 @@ class FormView extends View
       else
         @model.set name, value
 
-#  render: ->
-#    for name in @model.keys()
-#      inputs = HTMLFormElement::querySelectorAll.call @elem, "[name=#{name}]"
-#      continue unless inputs.length
-#      value = @model.get name
-#      switch inputs[0].type
-#        when 'checkbox'
-#          inputs[0].checked = value
-#        when 'radio'
-#          value = value.toString()
-#          for input in inputs when input.value is value
-#            input.checked = true
-#            break
-#        else
-#          inputs[0].value = value
-#    return
+  render: ->
+    for name in @model.keys()
+      inputs = HTMLFormElement::querySelectorAll.call @elem, "[name=#{name}]"
+      continue unless inputs.length
+      value = @model.get name
+      switch inputs[0].type
+        when 'checkbox'
+          inputs[0].checked = value
+        when 'radio'
+          value = value.toString()
+          for input in inputs when input.value is value
+            input.checked = true
+            break
+        else
+          inputs[0].value = value
+    return

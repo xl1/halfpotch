@@ -1,37 +1,42 @@
 <!doctype html>
-<meta charset="utf-8">
-<link rel="stylesheet" href="resource/halfpotch.css">
-<script src="microgl/microgl.js"></script>
-<script src="eve/eve.js"></script>
-<script src="resource/mosaicmaker.js"></script>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="resource/halfpotch.css">
+  <script src="microgl/microgl.js"></script>
+  <script src="eve/eve.js"></script>
+  <script src="resource/mosaicmaker.js"></script>
+</head>
+<body>
+  <header>
+    mosaic maker
+  </header>
+  <div id="form" class="inputs content">
+    <label>幅 <input type="number" name="width" value="48" min="1"></label>
+    
+    <label><input type="radio" name="mode" value="stack-plate" checked> プレート積み</label>
+    <label><input type="radio" name="mode" value="stack-brick"> ブロック積み</label>
+    <label><input type="radio" name="mode" value="lay"> 並べ</label>
 
-<header>
-  mosaic maker
-</header>
-<div id="form" class="inputs content">
-  <label>幅 <input type="number" name="width" value="48" min="1"></label>
-  
-  <label><input type="radio" name="mode" value="stack-plate" checked> プレート積み</label>
-  <label><input type="radio" name="mode" value="stack-brick"> ブロック積み</label>
-  <label><input type="radio" name="mode" value="lay"> 並べ</label>
+    <label>明るさ <input type="range" name="brightness"
+      min="-1.5" max="1.5" step="any" value="0" list="zero"></label>
+    <label>コントラスト <input type="range" name="contrast"
+      min="-1.5" max="1.5" step="any" value="0" list="zero"></label>
+    <datalist id="zero">
+      <option>0</option>
+    </datalist>
 
-  <label>明るさ <input type="range" name="brightness"
-    min="-1.5" max="1.5" step="any" value="0" list="zero"></label>
-  <label>コントラスト <input type="range" name="contrast"
-    min="-1.5" max="1.5" step="any" value="0" list="zero"></label>
-  <datalist id="zero">
-    <option>0</option>
-  </datalist>
+    <label><input type="checkbox" name="dither"> ディザリング</label>
+    <label><input type="checkbox" name="vivid"> あざやかモード</label>
 
-  <label><input type="checkbox" name="dither"> ディザリング</label>
-  <label><input type="checkbox" name="vivid"> あざやかモード</label>
+    <ul id="palette"></ul>
 
-  <ul id="palette"></ul>
-
-  <input type="button" id="render-button" value="印刷用出力">
-</div>
-<div class="content">
-  ここにファイルをドラッグ &amp; ドロップします
-  <canvas id="canv" width="1" height="1"></canvas>
-  <ul id="amount"></ul>
-</div>
+    <input type="button" id="render-button" value="印刷用出力">
+  </div>
+  <div class="content">
+    ここにファイルをドラッグ &amp; ドロップします
+    <canvas id="canv" width="1" height="1"></canvas>
+    <ul id="amount"></ul>
+  </div>
+</body>
+</html>

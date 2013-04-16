@@ -4,7 +4,7 @@ class Solver
     item = { id, part, color, amount, stores }
     stores = [store]
     store = { id, name, items }
-    matrix = (item, store) -> { price, localId }
+    matrix = (item, store) -> { price }
   ###
   jointAsSet = (a1, a2) ->
     res = [].concat(a1)

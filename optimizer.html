@@ -1,29 +1,35 @@
 <!doctype html>
-<meta charset="utf-8">
-<link rel="stylesheet" href="resource/halfpotch.css">
-<script src="eve/eve.js"></script>
-<script src="resource/optimizer.js"></script>
-
-<header>
-  bricklink order optimizer
-</header>
-<div id="form">
-  <div class="column">
-    <ol class="select" id="categorySelect"></ol>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="resource/halfpotch.css">
+  <script src="eve/eve.js"></script>
+  <script src="resource/optimizer.js"></script>
+</head>
+<body>
+  <header>
+    bricklink order optimizer
+  </header>
+  <div id="form">
+    <div class="column">
+      <ol class="select" id="categorySelect"></ol>
+    </div>
+    <div class="column">
+      <ol class="select" id="partSelect"></ol>
+    </div>
+    <div class="column">
+      <div id="image"></div>
+      <ol class="select" id="colorSelect"></ol>
+    </div>
+    <div class="column">
+      個数: <input type="number" name="amount" value="1" min="1" step="1">
+      <input type="button" id="addButton" value="追加">
+      <input type="button" id="editButton" value="編集">
+      <input type="button" id="removeButton" value="削除">
+      <input type="button" id="calculateButton" value="これで店を探す">
+      <ol class="select" id="cart"></ol>
+    </div>
   </div>
-  <div class="column">
-    <ol class="select" id="partSelect"></ol>
-  </div>
-  <div class="column">
-    <div id="image"></div>
-    <ol class="select" id="colorSelect"></ol>
-  </div>
-  <div class="column">
-    個数: <input type="number" name="amount" value="1" min="1" step="1">
-    <input type="button" id="addButton" value="追加">
-    <input type="button" id="editButton" value="編集">
-    <input type="button" id="removeButton" value="削除">
-    <input type="button" id="calculateButton" value="これで店を探す">
-    <ol class="select" id="cart"></ol>
-  </div>
-</div>
+  <div id="result"></div>
+</body>
+</html>

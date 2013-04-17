@@ -1,0 +1,110 @@
+$header-height: 50px;
+@import 'core.scss';
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  border-color: transparent;
+}
+
+%emphasis {
+  background-color: #37a;
+  color: #f8f8f8;
+}
+
+#form {
+  height: calc(#{unquote('100% - ' + $header-height)});
+}
+
+.column {
+  height: 100%;
+  float: left;
+  width: 30%;
+  &.thin {
+    width: 20%;
+  }
+}
+
+.select {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow-y: auto;
+  list-style: none;
+
+  input {
+    display: none;
+  }
+  label {
+    display: block;
+    padding: 0 12px 0 12px;
+  }
+  label:hover {
+    background-color: #ccc;
+    cursor: pointer;
+  }
+  li {
+    border-bottom: 1px solid #ccc;
+  }
+  input:checked + label {
+    @extend %emphasis;
+  }
+}
+#image {
+  height: 15%;
+  margin-bottom: 5%;
+  text-align: center;
+  img {
+    height: 100%;
+    max-height: 120px;
+  }
+}
+#colorSelect {
+  height: 80%;
+}
+#cart {
+  max-height: calc(#{unquote('100% - 100px')});
+}
+#result {
+  display: none;
+  height: calc(#{unquote('100% - ' + $header-height)});
+  overflow-y: auto;
+
+  tr {
+    border-bottom: 1px solid #ccc;
+  }
+  th {
+    @extend %emphasis;
+  }
+  td {
+    padding: 0 12px 0 12px;
+  }
+  &.displayed {
+    display: block;
+    & + * {
+      display: none;
+    }
+  }
+}
+
+#searchBox {
+  display: inline-block;
+  width: 50%;
+  font: medium auto;
+}
+.button {
+  @include button(#ccc);
+  display: inline-block;
+}
+#calculateButton {
+  @include button(#37a);
+  &.error {
+    background-color: #e33;
+  }
+  &:disabled {
+    background-color: #aaa;
+  }
+  display: inline-block;
+  margin-left: 5%;
+  width: 20%;
+}

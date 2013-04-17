@@ -110,6 +110,10 @@ class DataProcessor extends Model
     @_loader = new StoreDataLoader()
     @_solver = new Solver()
 
+  reset: ->
+    @items = []
+    @change 'reset'
+
   process: (@items) ->
     params = (for item in items
       { part: item.part.id, color: item.color.id, amount: item.amount }
@@ -118,31 +122,36 @@ class DataProcessor extends Model
       @makeMatrix(data)
       @result = @_solver.solve(@items, @stores, @matrix)
       @change()
+    , =>
+      @change 'error'
     , params
+    @change 'start'
 
   makeMatrix: (storeData) ->
     storeMap = {}
     for sData, id in storeData
+      item = @items[id]
+      item.stores = []
       for s in sData
         store = storeMap[s.id] or= {
           id: s.id
           name: s.name
           items: []
         }
-        item = items[id]
         store.items.push item
         item.stores.push store
         @matrix.set(item, store, {
           price: s.price
           url: s.url
         })
-    @stores = (storeMap[key] for key of Object.key storeMap)
+    @stores = (storeMap[key] for key in Object.keys storeMap)
 
 
 class ResultView extends View
   constructor: (model, @elem) ->
     super
-    @elem.textContent = 'calculating...'
+    model.listen 'reset', @hide.bind(@)
+    @showing = false
 
   _td: (text) ->
     td = document.createElement 'td'
@@ -161,7 +170,9 @@ class ResultView extends View
         #{text}
       </td>
       <td>
-        <a href="#{escapeHTML url}">#{escapeHTML store.name}</a>
+        <a href="http://www.bricklink.com#{escapeHTML url}" target="_blank">
+          #{escapeHTML store.name}
+        </a>
       </td>
     """
     tr.appendChild @_td(price)
@@ -170,23 +181,111 @@ class ResultView extends View
     tr
 
   _createTable: (solution) ->
-    table = document.createElement 'table'
-    table.insertAdjacentHTML 'beforeend', '<th><td>部品</td><td>店名</td><td>単価（円）</td><td>個数</td><td>小計</td></th>'
+    frag = document.createDocumentFragment()
+    header = document.createElement 'tr'
+    header.innerHTML = '<th>部品</th><th>店名</th><th>単価（円）</th><th>個数</th><th>小計</th>'
+    frag.appendChild header
+
+    wholePrice = 0
     for store, i in solution
       item = @model.items[i]
-      table.appendChild @_createRow(item, store)
-    table
+      frag.appendChild @_createRow(item, store)
+      wholePrice += @model.matrix.get(item, store).price * item.amount
 
-  show: ->
-    @elem.style.display = 'block'
+    footer = document.createElement 'tr'
+    footer.innerHTML = "<td colspan='3'><td>合計</td><td><b>#{wholePrice.toFixed 2}</b></td>"
+    frag.appendChild footer
+    frag
+
   hide: ->
-    @elem.style.display = 'none'
-
+    @elem.className = ''
+    @showing = false
+  
   render: ->
+    return unless @model.result.length
     @elem.innerHTML = ''
+    table = document.createElement 'table'
+    tbody = document.createElement 'tbody'
     for solution in @model.result.slice(0, 20)
-      @elem.appendChild @_createTable(solution)
+      tbody.appendChild @_createTable(solution)
+    table.appendChild tbody
+    @elem.appendChild table
+    @elem.className = 'displayed'
+    @showing = true
 
+
+class ProgressButton extends View
+  constructor: (model, @elem) ->
+    super
+    model.listen 'start', @start.bind(@)
+    model.listen 'error', @error.bind(@)
+    model.listen 'reset', @reset.bind(@)
+    @reset()
+
+  _setBackground: (color) ->
+    @elem.style.backgroundColor = color
+
+  error: ->
+    @elem.disabled = false
+    @elem.value = 'エラー、あとでやり直してください'
+    @elem.className = 'button error'
+    setTimeout @reset.bind(@), 3000
+  start: ->
+    @elem.disabled = true
+    @elem.value = 'データを集めています...'
+  reset: ->
+    @elem.disabled = false
+    @elem.value = 'このパーツで店を探す'
+    @elem.className = 'button'
+  render: ->
+    @elem.disabled = false
+    if @model.result.length
+      # end calculation successfully
+      @elem.value = 'パーツを選びなおす'
+      @elem.className = 'button'
+    else
+      @elem.value = 'パーツを減らしてください'
+      @elem.className = 'button error'
+      setTimeout @reset.bind(@), 3000
+
+
+class Searcher extends SelectModel
+  setData: (@data) ->
+
+  tokenize: (query) ->
+    query.split(/[,\s]+/).filter (str) -> str.length >= 2
+  convertToken: (token) ->
+    token
+      # "1x2x5" -> "1 x 2 x 5"
+      .replace(/([\/\.\d]+)(x)([\/\.\d]*)(x?)([\/\.\d]*)/, (arg...) ->
+        arg[1..5].join(' ').trim()
+      )
+      .replace(/\+/g, ' ')
+      .toLowerCase()
+
+  score: (text, tokens) ->
+    return 0 if tokens.length is 0
+    text = text.toLowerCase()
+    for t in tokens when text.indexOf(t) is -1
+      return 0
+    return 1
+
+
+  search: (query) ->
+    tokens = (@convertToken(t) for t in @tokenize query)
+    
+    scoreMap = {}
+    matched = []
+    for id in Object.keys @data
+      item = @data[id]
+      score = @score(item.name, tokens)
+      if score
+        scoreMap[id] = score
+        matched.push item
+
+    @options = matched.sort (a, b) -> scoreMap[b.id] - scoreMap[a.id]
+    @change()
+    @options
 
 
 do ->
@@ -196,6 +295,7 @@ do ->
   cartSelect     = new SelectModel 'cart'
   cart           = new Assoc()
   processor      = new DataProcessor()
+  searcher       = new Searcher 'search'
 
   cart.listen (type, id) ->
     switch type
@@ -227,22 +327,32 @@ do ->
     cart.set 'part', part.id
     cart.set 'color', color.id
     cart.set 'amount', amount
-  calculate = ->
-    processor.process(cartSelect.options)
 
   document.addEventListener 'DOMContentLoaded', ->
     new SelectView(categorySelect, $('categorySelect'))
     new SelectView(partSelect, $('partSelect'))
+    #new SelectView(searcher, $('partSelect'))
     new PartImageView(partSelect, $('image'))
     new ColorSelectView(colorSelect, $('colorSelect'))
     new CartSelectView(cartSelect, $('cart'))
     new FormView(cart, $('form'))
+    resultView = new ResultView(processor, $('result'))
+    new ProgressButton(processor, $('calculateButton'))
 
     $('addButton').addEventListener 'click', addItem, false
     $('editButton').addEventListener 'click', editItem, false
     $('removeButton').addEventListener 'click', removeItem, false
-    $('calculateButton').addEventListener 'click', calculate, false
+    $('calculateButton').addEventListener 'click', ->
+      if resultView.showing
+        processor.reset()
+      else
+        processor.process(cartSelect.options)
+    , false
+    $('searchBox').addEventListener 'input', ->
+      partSelect.reset searcher.search(@value)
+    , false
   , false
 
   new DataLoader().load (data) ->
     categorySelect.reset data.categories
+    searcher.setData data.parts

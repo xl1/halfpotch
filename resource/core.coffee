@@ -3,7 +3,7 @@ $ = (id) -> document.getElementById id
 
 escapeHTML = do ->
   re = /[&<>'"]/g
-  replacer = (x) -> x.charCodeAt(0)
+  replacer = (x) -> '&#' + x.charCodeAt(0) + ';'
   (text) -> text.replace(re, replacer)
 
 

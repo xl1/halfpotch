@@ -29,8 +29,8 @@ class ImageProcessorOption extends Assoc
       [@map.unitSize, @map.domainSize] = (
         switch value
           when 'stack-plate' then [[5, 2], [4, 6]]
-          when 'stack-brick' then [[5, 5], [4, 4]]
-          when 'lay'         then [[5, 6], [4, 4]]
+          when 'stack-brick' then [[5, 6], [4, 4]]
+          when 'lay'         then [[5, 5], [4, 4]]
       )
     if name is 'mode' or name is 'width'
       @map.height = @map.width * @map.unitSize[0] / @map.unitSize[1]

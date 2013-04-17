@@ -1,0 +1,61 @@
+html, body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background-color: #f8f8f8;
+}
+
+$header-height: 32px !default;
+header {
+  box-sizing: border-box;
+  height: $header-height;
+  line-height: $header-height;
+  border-bottom: 1px solid #ccc;
+  box-shadow: 0 1px 0 #fff;
+  background-color: #eee;
+}
+.title {
+  display: inline-block;
+  width: 20%;
+  text-indent: 30px;
+  white-space: nowrap;
+  font-weight: bold;
+}
+
+%button {
+  display: block;
+  padding: 3px 15px 3px 15px;
+  box-shadow: 0 1px 1px #fff inset;
+  border-radius: 2px;
+  font: medium auto;
+  cursor: pointer;
+
+  &:active {
+    box-shadow: none;
+  }
+  &:disabled {
+    box-shadow: none;
+    cursor: auto;
+  }
+}
+@mixin button($base: #ccc) {
+  $border-color: mix($base, #000, 85%);
+  $pushed-color: mix($base, #000, 90%);
+  $luma: red($base) * 0.3 + green($base) * 0.59 + blue($base) * 0.11;
+  $font-color: if($luma > 127, #000, #fff);
+  @extend %button;
+  background-color: $base;
+  color: $font-color;
+  border: 1px solid $border-color;
+  &:active {
+    background-color: $pushed-color;
+  }
+}
+
+.color-box {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin: 0 4px 0 0;
+}

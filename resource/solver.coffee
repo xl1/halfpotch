@@ -14,16 +14,16 @@ class Solver
     res
 
   calcStores = (items, stores, storeNum) ->
+    # stores is sorted by ::items.length
     return [[]] if items.length is 0
     return [] if storeNum is 0
 
     result = []
     threshold = items.length / storeNum
     for store, idx in stores
-      # 買えない item
+      if store.items.length < threshold
+        return result
       restItems = items.filter (item) -> item not in store.items
-      if items.length - restItems.length < threshold
-        continue
       restStores = stores.slice(idx)
       for comb in calcStores(restItems, restStores, storeNum - 1)
         result.push [store].concat(comb)
@@ -37,11 +37,17 @@ class Solver
     res
 
   solve: (items, stores, matrix) ->
-    stores = new SuperArray(stores)
+    # まずそもそも買えるのかどうか
+    for item in items when item.stores.length is 0
+      return []
 
-    # まず店の最小の数を貪欲に概算する
-    buyableItems = []
-    minStoreNum = 0
+    stores = new SuperArray(stores.sort (a, b) ->
+      b.items.length - a.items.length
+    )
+
+    # 店の最小の数を貪欲に概算する
+    buyableItems = stores[0].items
+    minStoreNum = 1
     while buyableItems.length < items.length
       largest = stores.maxBy (store) ->
         store.items.filter((item) -> item not in buyableItems).length

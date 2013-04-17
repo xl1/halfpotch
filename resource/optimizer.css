@@ -1,0 +1,130 @@
+html, body {
+  height: 100%; }
+
+body {
+  margin: 0;
+  background-color: #f8f8f8; }
+
+header {
+  box-sizing: border-box;
+  height: 50px;
+  line-height: 50px;
+  border-bottom: 1px solid #cccccc;
+  box-shadow: 0 1px 0 white;
+  background-color: #eee; }
+
+.title {
+  display: inline-block;
+  width: 20%;
+  text-indent: 30px;
+  white-space: nowrap;
+  font-weight: bold; }
+
+.button, #calculateButton {
+  display: block;
+  padding: 3px 15px 3px 15px;
+  box-shadow: 0 1px 1px white inset;
+  border-radius: 2px;
+  font: medium auto;
+  cursor: pointer; }
+  .button:active, #calculateButton:active {
+    box-shadow: none; }
+  .button:disabled, #calculateButton:disabled {
+    box-shadow: none;
+    cursor: auto; }
+
+.color-box {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin: 0 4px 0 0; }
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  border-color: transparent; }
+
+.select input:checked + label, #result th {
+  background-color: #37a;
+  color: #f8f8f8; }
+
+#form {
+  height: calc(100% - 50px); }
+
+.column {
+  height: 100%;
+  float: left;
+  width: 30%; }
+  .column.thin {
+    width: 20%; }
+
+.select {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow-y: auto;
+  list-style: none; }
+  .select input {
+    display: none; }
+  .select label {
+    display: block;
+    padding: 0 12px 0 12px; }
+  .select label:hover {
+    background-color: #ccc;
+    cursor: pointer; }
+  .select li {
+    border-bottom: 1px solid #cccccc; }
+
+#image {
+  height: 15%;
+  margin-bottom: 5%;
+  text-align: center; }
+  #image img {
+    height: 100%;
+    max-height: 120px; }
+
+#colorSelect {
+  height: 80%; }
+
+#cart {
+  max-height: calc(100% - 100px); }
+
+#result {
+  display: none;
+  height: calc(100% - 50px);
+  overflow-y: auto; }
+  #result tr {
+    border-bottom: 1px solid #cccccc; }
+  #result td {
+    padding: 0 12px 0 12px; }
+  #result.displayed {
+    display: block; }
+    #result.displayed + * {
+      display: none; }
+
+#searchBox {
+  display: inline-block;
+  width: 50%;
+  font: medium auto; }
+
+.button {
+  background-color: #cccccc;
+  color: black;
+  border: 1px solid #adadad;
+  display: inline-block; }
+  .button:active {
+    background-color: #b7b7b7; }
+
+#calculateButton {
+  background-color: #3377aa;
+  color: white;
+  border: 1px solid #2b6590;
+  display: inline-block;
+  margin-left: 5%;
+  width: 20%; }
+  #calculateButton:active {
+    background-color: #2d6b99; }
+  #calculateButton.error {
+    background-color: #e33; }
+  #calculateButton:disabled {
+    background-color: #aaa; }

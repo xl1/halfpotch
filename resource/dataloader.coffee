@@ -57,9 +57,11 @@ class DataLoader
 
 class StoreDataLoader
   baseurl = '/script/getstoredata'
-  load: (callback, params) ->
+  load: (callback, errorCallback, params) ->
     data = (xhrget(baseurl, param) for param in params)
     # 全部ロードできたら
     IF(data.reduce (pre, cur) -> pre.AND cur) ->
       result = (JSON.parse(d.result) for d in data)
       callback(result)
+    , ELSE ->
+      errorCallback()

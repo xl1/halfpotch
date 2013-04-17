@@ -13,7 +13,7 @@
     var re, replacer;
     re = /[&<>'"]/g;
     replacer = function(x) {
-      return x.charCodeAt(0);
+      return '&#' + x.charCodeAt(0) + ';';
     };
     return function(text) {
       return text.replace(re, replacer);
@@ -361,9 +361,9 @@
             case 'stack-plate':
               return [[5, 2], [4, 6]];
             case 'stack-brick':
-              return [[5, 5], [4, 4]];
-            case 'lay':
               return [[5, 6], [4, 4]];
+            case 'lay':
+              return [[5, 5], [4, 4]];
           }
         })()), this.map.unitSize = _ref[0], this.map.domainSize = _ref[1];
       }

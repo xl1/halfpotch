@@ -12,16 +12,16 @@ xhrget = (url, param) ->
   r
 
 class DataLoader
-  source = ['test/3.txt', 'test/5.txt', 'test/0.txt']
+  baseurl: '/script/getpartsdata'
   load: (callback, errorCallback) ->
     colors = {}
     colorNames = {}
     parts = {}
     categories = {}
 
-    colorsData = @get source[0]
-    codesData = @get source[1]
-    partsData = @get source[2]
+    colorsData = @get @baseurl + '?num=3'
+    codesData = @get @baseurl + '?num=5'
+    partsData = @get @baseurl + '?num=0'
 
     # 処理するの、xhr する時間に比べたら一瞬で終わるし全部ロードしてからでいい
     IF(colorsData.AND codesData.AND partsData) ->

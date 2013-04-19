@@ -249,11 +249,16 @@ class ProgressButton extends View
       setTimeout @reset.bind(@), 3000
 
 
-class Searcher extends SelectModel
-  setData: (@data) ->
+class Searcher
+  constructor: ->
+    @options = []
+    @data = []
+
+  setData: (source) ->
+    @data = (source[key] for key in Object.keys source)
 
   tokenize: (query) ->
-    query.split(/[,\s]+/).filter (str) -> str.length >= 2
+    query.toLowerCase().split(/[,\s]+/).filter (str) -> str.length >= 2
   convertToken: (token) ->
     token
       # "1x2x5" -> "1 x 2 x 5"
@@ -261,31 +266,17 @@ class Searcher extends SelectModel
         arg[1..5].join(' ').trim()
       )
       .replace(/\+/g, ' ')
-      .toLowerCase()
 
-  score: (text, tokens) ->
-    return 0 if tokens.length is 0
+  match: (text, tokens) ->
+    return if (not text) or (tokens.length is 0)
     text = text.toLowerCase()
     for t in tokens when text.indexOf(t) is -1
-      return 0
-    return 1
-
+      return false
+    return true
 
   search: (query) ->
     tokens = (@convertToken(t) for t in @tokenize query)
-    
-    scoreMap = {}
-    matched = []
-    for id in Object.keys @data
-      item = @data[id]
-      score = @score(item.name, tokens)
-      if score
-        scoreMap[id] = score
-        matched.push item
-
-    @options = matched.sort (a, b) -> scoreMap[b.id] - scoreMap[a.id]
-    @change()
-    @options
+    @options = (item for item in @data when @match(item.name, tokens))
 
 
 do ->
@@ -295,7 +286,7 @@ do ->
   cartSelect     = new SelectModel 'cart'
   cart           = new Assoc()
   processor      = new DataProcessor()
-  searcher       = new Searcher 'search'
+  searcher       = new Searcher()
 
   cart.listen (type, id) ->
     switch type
@@ -331,7 +322,6 @@ do ->
   document.addEventListener 'DOMContentLoaded', ->
     new SelectView(categorySelect, $('categorySelect'))
     new SelectView(partSelect, $('partSelect'))
-    #new SelectView(searcher, $('partSelect'))
     new PartImageView(partSelect, $('image'))
     new ColorSelectView(colorSelect, $('colorSelect'))
     new CartSelectView(cartSelect, $('cart'))

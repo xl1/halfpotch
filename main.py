@@ -6,17 +6,51 @@ import re
 import json
 from xml.sax.saxutils import unescape
 from google.appengine.api import urlfetch
+from google.appengine.ext import db
+
+class Fragment(db.Model):
+  last = db.BooleanProperty()
+  data = db.TextProperty()
 
 class BrickLinkData(webapp2.RequestHandler):
   def get(self):
     # fetch CSV data from Bricklink.com
-    self.response.out.write('not implemented')
+    MAXFILESIZE = 1000000
+
+    # num = 0(parts), 3(colors), or 5(codes)
+    num = self.request.get('num')
+    url = 'http://www.bricklink.com/catalogDownload.asp' + \
+          '?a=a&itemType=P&downloadType=T&viewType=' + num
+    try:
+      result = urlfetch.fetch(url, deadline=10)
+    except urlfetch.DownloadError:
+      return
+    if result.status_code != 200:
+      return
+
+    maxnum = len(result.content) / MAXFILESIZE
+    for j in range(maxnum+1): # 1MB ごとに分割
+      content = result.content[j*MAXFILESIZE : (j+1)*MAXFILESIZE]
+      frag = Fragment.get_or_insert(num + '@' + str(j))
+      frag.data = db.Text(content, encoding='utf_8')
+      frag.last = (j == maxnum)
+      frag.put()
+    self.response.out.write('succeeded')
 
 class PartsData(webapp2.RequestHandler):
   def get(self):
     # serve CSV data of categories, codes, and colors
-    self.response.out.write('not implemented')
-
+    i = 0
+    self.response.headers['Content-Type'] = 'text/plain'
+    while True:
+      frag = Fragment.get_by_key_name(self.request.get('num') + '@' + str(i))
+      i += 1
+      if not frag:
+        self.error(404)
+        break
+      self.response.out.write(frag.data)
+      if frag.last:
+        break
 
 class StoreData(webapp2.RequestHandler):
   def get(self):
@@ -24,9 +58,9 @@ class StoreData(webapp2.RequestHandler):
     color = self.request.get('color')
     amount = int(self.request.get('amount'))
     result = []
-    self.response.headers['Content-Type'] = 'application/json'
 
-    url = 'http://www.bricklink.com/catalogPG.asp?P=%s&colorID=%s' % (part, color)
+    url = 'http://www.bricklink.com/catalogPG.asp' + \
+          '?P=' + part + '&colorID=' + color
     try:
       source = urlfetch.fetch(
         url,
@@ -34,15 +68,15 @@ class StoreData(webapp2.RequestHandler):
         deadline=10
       )
     except urlfetch.DownLoadError:
-      return self.error()
+      return self.error(500)
     if source.status_code != 200:
-      return self.error()
+      return self.error(500)
 
     frame = re.search(
       'Currently Available(.*)Currently Available', source.content
     )
     if not frame:
-      return self.error()
+      return self.error(500)
     
     pattern = re.compile(r"""
       <TR\ ALIGN="RIGHT">
@@ -68,14 +102,12 @@ class StoreData(webapp2.RequestHandler):
           'url': url
         })
 
+    self.response.headers['Content-Type'] = 'application/json'
     self.response.out.write(json.dumps(result))
-
-  def error(self):
-    self.response.write('[]')
 
 
 app = webapp2.WSGIApplication([
   ('/script/getpartsdata', PartsData),
   ('/script/getstoredata', StoreData),
-  ('/script/getbldata', BrickLinkData)
+  ('/script/fetchbldata', BrickLinkData)
 ], debug=True)

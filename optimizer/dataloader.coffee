@@ -12,16 +12,16 @@ xhrget = (url, param) ->
   r
 
 class DataLoader
-  baseurl: '/script/getpartsdata'
   load: (callback, errorCallback) ->
     colors = {}
     colorNames = {}
     parts = {}
     categories = {}
 
-    colorsData = @get @baseurl + '?num=3'
-    codesData = @get @baseurl + '?num=5'
-    partsData = @get @baseurl + '?num=0'
+    baseurl = constants.optimizer.appurl + '/getpartsdata'
+    colorsData = @get baseurl + '?num=3'
+    codesData = @get baseurl + '?num=5'
+    partsData = @get baseurl + '?num=0'
 
     # 処理するの、xhr する時間に比べたら一瞬で終わるし全部ロードしてからでいい
     IF(colorsData.AND codesData.AND partsData) ->
@@ -56,8 +56,8 @@ class DataLoader
     r
 
 class StoreDataLoader
-  baseurl = '/script/getstoredata'
   load: (callback, errorCallback, params) ->
+    baseurl = constants.optimizer.appurl + '/getstoredata'
     data = (xhrget(baseurl, param) for param in params)
     # 全部ロードできたら
     IF(data.reduce (pre, cur) -> pre.AND cur) ->

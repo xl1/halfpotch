@@ -107,7 +107,7 @@ class StoreData(webapp2.RequestHandler):
 
 
 app = webapp2.WSGIApplication([
-  ('/script/getpartsdata', PartsData),
-  ('/script/getstoredata', StoreData),
-  ('/script/fetchbldata', BrickLinkData)
+  ('/optimizer/app/getpartsdata', PartsData),
+  ('/optimizer/app/getstoredata', StoreData),
+  ('/optimizer/app/fetchbldata', BrickLinkData)
 ], debug=True)

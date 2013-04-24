@@ -309,6 +309,9 @@
         contrast: 0,
         scale: 4
       }
+    },
+    optimizer: {
+      appurl: '/optimizer/app'
     }
   };
 

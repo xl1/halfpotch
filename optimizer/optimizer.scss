@@ -1,5 +1,5 @@
 $header-height: 50px;
-@import 'core.scss';
+@import '../core/core.scss';
 
 table {
   border-collapse: collapse;
@@ -51,8 +51,7 @@ table {
   }
 }
 #image {
-  height: 15%;
-  margin-bottom: 5%;
+  height: 20%;
   text-align: center;
   img {
     height: 100%;

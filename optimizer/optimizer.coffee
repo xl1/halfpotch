@@ -1,39 +1,3 @@
-class SelectModel extends Model # window.Select is reserved
-  constructor: (@type) ->
-    super
-    @item = null
-    @options = []
-
-  reset: (source) ->
-    @options = []
-    ids = Object.keys(source).sort (a, b) ->
-      source[a].name.localeCompare source[b].name
-    for id in ids
-      @add source[id], false
-    @change()
-
-  add: (item, change=true) ->
-    @options.push item
-    if change
-      @change 'add', item
-
-  remove: ->
-    item = @item
-    @item = null
-    idx = @options.indexOf item
-    @options.splice(idx, 1)
-    @change()
-    item
-
-  setItem: (id) ->
-    for option in @options
-      if option.id is id
-        @item = option
-        @change 'select', option
-        return
-    return
-
-
 class SelectView extends View
   constructor: (model, @elem) ->
     super
@@ -88,6 +52,7 @@ class CartSelectView extends SelectView
     """
     li
 
+
 class PartImageView extends View
   constructor: (model, @elem) ->
     super
@@ -99,52 +64,6 @@ class PartImageView extends View
         @src = "http://img.bricklink.com/P/#{colorId}/#{item.id}.jpg"
         @onerror = null
       img.src = "http://img.bricklink.com/P/#{colorId}/#{item.id}.gif"
-
-
-class DataProcessor extends Model
-  constructor: ->
-    super
-    @items = []
-    @stores = []
-    @matrix = new ItemStoreMatrix()
-    @_loader = new StoreDataLoader()
-    @_solver = new Solver()
-
-  reset: ->
-    @items = []
-    @change 'reset'
-
-  process: (@items) ->
-    params = (for item in items
-      { part: item.part.id, color: item.color.id, amount: item.amount }
-    )
-    @_loader.load (data) =>
-      @makeMatrix(data)
-      @result = @_solver.solve(@items, @stores, @matrix)
-      @change()
-    , =>
-      @change 'error'
-    , params
-    @change 'start'
-
-  makeMatrix: (storeData) ->
-    storeMap = {}
-    for sData, id in storeData
-      item = @items[id]
-      item.stores = []
-      for s in sData
-        store = storeMap[s.id] or= {
-          id: s.id
-          name: s.name
-          items: []
-        }
-        store.items.push item
-        item.stores.push store
-        @matrix.set(item, store, {
-          price: s.price
-          url: s.url
-        })
-    @stores = (storeMap[key] for key in Object.keys storeMap)
 
 
 class ResultView extends View
@@ -249,36 +168,6 @@ class ProgressButton extends View
       setTimeout @reset.bind(@), 3000
 
 
-class Searcher
-  constructor: ->
-    @options = []
-    @data = []
-
-  setData: (source) ->
-    @data = (source[key] for key in Object.keys source)
-
-  tokenize: (query) ->
-    query.toLowerCase().split(/[,\s]+/).filter (str) -> str.length >= 2
-  convertToken: (token) ->
-    token
-      # "1x2x5" -> "1 x 2 x 5"
-      .replace(/([\/\.\d]+)(x)([\/\.\d]*)(x?)([\/\.\d]*)/, (arg...) ->
-        arg[1..5].join(' ').trim()
-      )
-      .replace(/\+/g, ' ')
-
-  match: (text, tokens) ->
-    return if (not text) or (tokens.length is 0)
-    text = text.toLowerCase()
-    for t in tokens when text.indexOf(t) is -1
-      return false
-    return true
-
-  search: (query) ->
-    tokens = (@convertToken(t) for t in @tokenize query)
-    @options = (item for item in @data when @match(item.name, tokens))
-
-
 do ->
   categorySelect = new SelectModel 'category'
   partSelect     = new SelectModel 'part'
@@ -287,6 +176,7 @@ do ->
   cart           = new Assoc()
   processor      = new DataProcessor()
   searcher       = new Searcher()
+  router         = new Router(cartSelect)
 
   cart.listen (type, id) ->
     switch type
@@ -346,3 +236,4 @@ do ->
   new DataLoader().load (data) ->
     categorySelect.reset data.categories
     searcher.setData data.parts
+    router.setData data

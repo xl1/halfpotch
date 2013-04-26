@@ -912,11 +912,11 @@
     };
 
     DataProcessor.prototype.makeMatrix = function(storeData) {
-      var id, item, key, s, sData, store, storeMap, _i, _j, _len, _len1, _name;
+      var idx, item, key, s, sData, store, storeMap, _i, _j, _len, _len1, _name;
       storeMap = {};
-      for (id = _i = 0, _len = storeData.length; _i < _len; id = ++_i) {
-        sData = storeData[id];
-        item = this.items[id];
+      for (idx = _i = 0, _len = storeData.length; _i < _len; idx = ++_i) {
+        sData = storeData[idx];
+        item = this.items[idx];
         item.stores = [];
         for (_j = 0, _len1 = sData.length; _j < _len1; _j++) {
           s = sData[_j];

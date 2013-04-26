@@ -92,8 +92,12 @@ class StoreData(webapp2.RequestHandler):
       </TR>
     """, re.VERBOSE) # unescaped spaces は無視
     parser = HTMLParser()
+    seen = set()
     for match in pattern.findall(frame.group(1)):
       url, sID, name, lot, price = match
+      if sID in seen:
+        continue # 一つの店で複数の買い方があることがある、それは安い方のみをとる
+      seen.add(sID)
       lot = int(lot)
       if lot >= amount and lot >= 8:
         result.append({

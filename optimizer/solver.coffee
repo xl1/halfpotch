@@ -8,9 +8,8 @@ class Solver
   ###
   jointAsSet = (a1, a2) ->
     res = [].concat(a1)
-    for item in a2
-      if item not in a1
-        res.push(item)
+    for item in a2 when item not in a1
+      res.push(item)
     res
 
   calcStores = (items, stores, storeNum) ->

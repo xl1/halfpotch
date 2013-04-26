@@ -62,8 +62,8 @@ class DataProcessor extends Model
 
   makeMatrix: (storeData) ->
     storeMap = {}
-    for sData, id in storeData
-      item = @items[id]
+    for sData, idx in storeData
+      item = @items[idx]
       item.stores = []
       for s in sData
         store = storeMap[s.id] or= {

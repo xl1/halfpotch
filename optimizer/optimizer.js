@@ -284,12 +284,13 @@
         blueprint: "precision mediump float;\nuniform sampler2D u_source;\nuniform vec2 u_unitSize;\nuniform vec2 u_domainSize;\nuniform float u_scale;\nuniform sampler2D u_colors;\n\nvarying vec2 v_texCoord;\n\nconst int COLORLEN = 32;\n\nbool checked(vec4 color){\n  float x;\n  for(int i = 0; i < COLORLEN; i++){\n    x = (0.5 + float(i)) / float(COLORLEN);\n    if(color == texture2D(u_colors, vec2(x, 0.5))) return true;\n  }\n  return false;\n}\nfloat luma(vec4 color){\n  return dot(vec3(0.3, 0.59, 0.11), color.rgb);\n}\nvec4 borderColor(vec4 color, float degree){\n  if(luma(color) < 0.5) return color + vec4(degree);\n  return color - vec4(vec3(degree), 0.0);\n}\nvoid main(){\n  vec2 pos = (gl_FragCoord.xy - vec2(0.5)) / u_scale;\n  vec2 unitCoord = mod(pos, u_unitSize);\n  vec2 domainCoord = mod(pos, u_unitSize * u_domainSize);\n  vec4 color = texture2D(u_source, v_texCoord);\n  \n  if(any(equal(domainCoord, vec2(0.0)))){\n    gl_FragColor = borderColor(color, 1.0);\n  } else if(unitCoord.x == unitCoord.y && checked(color) ||\n      any(equal(unitCoord, vec2(0.0)))){\n    gl_FragColor = borderColor(color, 0.3);\n  } else {\n    gl_FragColor = color;\n  }\n}"
       },
       colors: (function() {
-        var b, checked, cls, g, name, r, use, _i, _len, _ref, _results;
-        cls = [['Black', 33, 33, 33, true], ['Dark Gray', 107, 90, 90, true], ['Light Gray', 156, 156, 156, true], ['Very Light Gray', 232, 232, 232, true, true], ['White', 255, 255, 255, true], ['Dark Bluish Gray', 89, 93, 96], ['Light Bluish Gray', 175, 181, 199], ['Blue', 0, 87, 166], ['Red', 179, 0, 6], ['Yellow', 247, 209, 23], ['Green', 0, 100, 46], ['Tan', 222, 198, 156], ['Reddish Brown', 137, 53, 29], ['Dark Blue', 20, 48, 68], ['Bright Pink', 243, 154, 194], ['Brown', 83, 33, 21], ['Dark Purple', 95, 38, 131], ['Dark Red', 106, 14, 21], ['Dark Tan', 144, 116, 80], ['Dark Turquoise', 0, 138, 128], ['Lime', 166, 202, 85], ['Maersk Blue', 107, 173, 214], ['Medium Blue', 97, 175, 255], ['Medium Lavender', 181, 165, 213], ['Medium Orange', 255, 165, 49], ['Orange', 255, 126, 20], ['Pink', 255, 199, 225], ['Purple', 165, 73, 156], ['Sand Blue', 90, 113, 132], ['Sand Green', 118, 162, 144]];
+        var b, checked, cls, g, id, name, r, use, _i, _len, _ref, _results;
+        cls = [[11, 'Black', 33, 33, 33, true], [10, 'Dark Gray', 107, 90, 90, true], [9, 'Light Gray', 156, 156, 156, true], [49, 'Very Light Gray', 232, 232, 232, true, true], [1, 'White', 255, 255, 255, true], [85, 'Dark Bluish Gray', 89, 93, 96], [86, 'Light Bluish Gray', 175, 181, 199], [7, 'Blue', 0, 87, 166], [5, 'Red', 179, 0, 6], [3, 'Yellow', 247, 209, 23], [6, 'Green', 0, 100, 46], [2, 'Tan', 222, 198, 156], [88, 'Reddish Brown', 137, 53, 29], [63, 'Dark Blue', 20, 48, 68], [104, 'Bright Pink', 243, 154, 194], [8, 'Brown', 83, 33, 21], [89, 'Dark Purple', 95, 38, 131], [59, 'Dark Red', 106, 14, 21], [69, 'Dark Tan', 144, 116, 80], [39, 'Dark Turquoise', 0, 138, 128], [34, 'Lime', 166, 202, 85], [72, 'Maersk Blue', 107, 173, 214], [42, 'Medium Blue', 97, 175, 255], [157, 'Medium Lavender', 181, 165, 213], [31, 'Medium Orange', 255, 165, 49], [4, 'Orange', 255, 126, 20], [23, 'Pink', 255, 199, 225], [24, 'Purple', 165, 73, 156], [55, 'Sand Blue', 90, 113, 132], [48, 'Sand Green', 118, 162, 144]];
         _results = [];
         for (_i = 0, _len = cls.length; _i < _len; _i++) {
-          _ref = cls[_i], name = _ref[0], r = _ref[1], g = _ref[2], b = _ref[3], use = _ref[4], checked = _ref[5];
+          _ref = cls[_i], id = _ref[0], name = _ref[1], r = _ref[2], g = _ref[3], b = _ref[4], use = _ref[5], checked = _ref[6];
           _results.push({
+            id: id,
             name: name,
             color: new Color(r, g, b),
             use: use,
@@ -986,23 +987,28 @@
     };
 
     Router.prototype.load = function(str) {
-      var amount, colorId, id, s, _i, _len, _ref, _ref1, _results;
+      var amount, color, colorId, id, part, result, s, _i, _len, _ref, _ref1;
       if (!str) {
         return [];
       }
+      result = [];
       _ref = str.split('|');
-      _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         s = _ref[_i];
         _ref1 = s.split(','), id = _ref1[0], colorId = _ref1[1], amount = _ref1[2];
-        _results.push({
-          id: uuid(),
-          part: this.data.parts[id],
-          color: this.data.colors[colorId],
-          amount: amount | 0
-        });
+        part = this.data.parts[id];
+        color = this.data.colors[colorId];
+        if (part && color) {
+          amount = amount > 0 ? amount | 0 : 1;
+          result.push({
+            id: uuid(),
+            part: part,
+            color: color,
+            amount: amount
+          });
+        }
       }
-      return _results;
+      return result;
     };
 
     return Router;
@@ -1218,7 +1224,7 @@
       _ref = this.model.matrix.get(item, store), price = _ref.price, url = _ref.url;
       text = escapeHTML(item.color.name + ' ' + item.part.name);
       tr = document.createElement('tr');
-      tr.insertAdjacentHTML('beforeend', "<td>\n  <span class=\"color-box\"\n    style=\"background-color: " + (escapeHTML(item.color.rgb)) + ";\"></span>\n  " + text + "\n</td>\n<td>\n  <a href=\"http://www.bricklink.com" + (escapeHTML(url)) + "\" target=\"_blank\">\n    " + (escapeHTML(store.name)) + "\n  </a>\n</td>");
+      tr.insertAdjacentHTML('beforeend', "<td>\n  <span class=\"color-box\"\n    style=\"background-color: " + (escapeHTML(item.color.rgb)) + ";\"></span>\n  <a href=\"http://www.bricklink.com/catalogPG.asp?P=" + item.part.id + "&colorID=" + item.color.id + "\" target=\"_blank\">\n    " + text + "\n  </a>\n</td>\n<td>\n  <a href=\"http://www.bricklink.com" + (escapeHTML(url)) + "\" target=\"_blank\">\n    " + (escapeHTML(store.name)) + "\n  </a>\n</td>");
       tr.appendChild(this._td(price));
       tr.appendChild(this._td(item.amount));
       tr.appendChild(this._td((price * item.amount).toFixed(2)));

@@ -20,16 +20,16 @@ header {
   white-space: nowrap;
   font-weight: bold; }
 
-#render-button {
+.button {
   display: block;
   padding: 3px 15px 3px 15px;
   box-shadow: 0 1px 1px white inset;
   border-radius: 2px;
   font: medium auto;
   cursor: pointer; }
-  #render-button:active {
+  .button:active {
     box-shadow: none; }
-  #render-button:disabled {
+  .button:disabled {
     box-shadow: none;
     cursor: auto; }
 
@@ -102,10 +102,10 @@ canvas {
   padding: 0;
   list-style: none; }
 
-#render-button {
+.button {
   background-color: #cccccc;
   color: black;
   border: 1px solid #adadad;
-  margin: auto; }
-  #render-button:active {
+  margin: 5px auto; }
+  .button:active {
     background-color: #b7b7b7; }

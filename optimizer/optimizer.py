@@ -4,7 +4,7 @@
 import webapp2
 import re
 import json
-from xml.sax.saxutils import unescape
+from HTMLParser import HTMLParser
 from google.appengine.api import urlfetch
 from google.appengine.ext import db
 
@@ -91,13 +91,14 @@ class StoreData(webapp2.RequestHandler):
         <TD>&nbsp;~JPY&nbsp;([.0-9]+)</TD>
       </TR>
     """, re.VERBOSE) # unescaped spaces は無視
+    parser = HTMLParser()
     for match in pattern.findall(frame.group(1)):
       url, sID, name, lot, price = match
       lot = int(lot)
       if lot >= amount and lot >= 8:
         result.append({
           'id': sID,
-          'name': unescape(name),
+          'name': parser.unescape(name),
           'price': float(price),
           'url': url
         })

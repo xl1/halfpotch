@@ -86,7 +86,9 @@ class ResultView extends View
       <td>
         <span class="color-box"
           style="background-color: #{escapeHTML item.color.rgb};"></span>
-        #{text}
+        <a href="http://www.bricklink.com/catalogPG.asp?P=#{item.part.id}&colorID=#{item.color.id}" target="_blank">
+          #{text}
+        </a>
       </td>
       <td>
         <a href="http://www.bricklink.com#{escapeHTML url}" target="_blank">

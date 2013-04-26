@@ -100,14 +100,15 @@ class Router
 
   load: (str) ->
     return [] unless str
+    result = []
     for s in str.split '|'
       [id, colorId, amount] = s.split ','
-      {
-        id: uuid()
-        part: @data.parts[id]
-        color: @data.colors[colorId]
-        amount: amount |0
-      }
+      part = @data.parts[id]
+      color = @data.colors[colorId]
+      if part and color
+        amount = if amount > 0 then amount |0 else 1
+        result.push { id: uuid(), part, color, amount }
+    result
 
 
 class Searcher

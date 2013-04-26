@@ -85,7 +85,7 @@ canvas {
   padding: 0;
   list-style: none;
 }
-#render-button {
+.button {
   @include button(#ccc);
-  margin: auto;
+  margin: 5px auto;
 }

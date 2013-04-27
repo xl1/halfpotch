@@ -8,6 +8,7 @@ body {
 
 $header-height: 32px !default;
 header {
+  -moz-box-sizing: border-box;
   box-sizing: border-box;
   height: $header-height;
   line-height: $header-height;

@@ -6,6 +6,7 @@ body {
   background-color: #f8f8f8; }
 
 header {
+  -moz-box-sizing: border-box;
   box-sizing: border-box;
   height: 32px;
   line-height: 32px;
@@ -43,6 +44,7 @@ canvas {
   display: block; }
 
 .content {
+  -moz-box-sizing: border-box;
   box-sizing: border-box;
   height: 100%;
   margin-top: -32px;

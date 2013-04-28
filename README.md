@@ -1,8 +1,11 @@
 # halfpotch
 
-昔作られたツールたちをリメイクしていくことにした
+レゴ買うのに便利なツール
 
 available at <http://halfpotch.appspot.com>
 
-- mosaic maker
-- [BrickLink](http://www.bricklink.com/) order optimizer
+- [mosaic maker](http://halfpotch.appspot.com/mosaicmaker)
+  - 画像からレゴモザイク画を作る
+- [BrickLink order optimizer](http://halfpotch.appspot.com/optimizer)
+  - [BrickLink](http://www.bricklink.com/)
+    でレゴを買うときに、なるべく少ない店で買えるように考えてくれる

@@ -61,7 +61,7 @@ canvas {
   }
   .color-use {
     background: {
-      image: url('data:image/svg+xml,<svg viewBox="-3 -3 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M2,6L0,6L4,10L10,0L8,0L4,8Z" fill="%2339f" stroke="%23000" stroke-width="0.25"/></svg>');
+      image: url('data:image/svg+xml,<svg viewBox="-3 -3 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M2,5L0,6L4,10L10,0L8,0L4,7Z" fill="%233bc" stroke="%23000" stroke-width="0.25"/></svg>');
       size: 100% 100%;
     }
   }
@@ -87,6 +87,6 @@ canvas {
   list-style: none;
 }
 .button {
-  @include button(#ccc);
+  @include button();
   margin: 5px auto;
 }

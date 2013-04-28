@@ -27,8 +27,7 @@ header {
 %button {
   display: block;
   padding: 3px 15px 3px 15px;
-  box-shadow: 0 1px 1px #fff inset;
-  border-radius: 2px;
+  box-shadow: 0 2px 0 rgba(255, 255, 255, 0.4) inset;
   font: medium auto;
   cursor: pointer;
 
@@ -40,7 +39,7 @@ header {
     cursor: auto;
   }
 }
-@mixin button($base: #ccc) {
+@mixin button($base: #d0d0d0) {
   $border-color: mix($base, #000, 85%);
   $pushed-color: mix($base, #000, 90%);
   $luma: red($base) * 0.3 + green($base) * 0.59 + blue($base) * 0.11;

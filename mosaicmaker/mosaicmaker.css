@@ -24,8 +24,7 @@ header {
 .button {
   display: block;
   padding: 3px 15px 3px 15px;
-  box-shadow: 0 1px 1px white inset;
-  border-radius: 2px;
+  box-shadow: 0 2px 0 rgba(255, 255, 255, 0.4) inset;
   font: medium auto;
   cursor: pointer; }
   .button:active {
@@ -84,7 +83,7 @@ canvas {
       white-space: nowrap;
       text-indent: -20px; }
   #palette .color-use {
-    background-image: url('data:image/svg+xml,<svg viewBox="-3 -3 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M2,6L0,6L4,10L10,0L8,0L4,8Z" fill="%2339f" stroke="%23000" stroke-width="0.25"/></svg>');
+    background-image: url('data:image/svg+xml,<svg viewBox="-3 -3 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M2,5L0,6L4,10L10,0L8,0L4,7Z" fill="%233bc" stroke="%23000" stroke-width="0.25"/></svg>');
     background-size: 100% 100%; }
   #palette .color-checked-light::before,
   #palette .color-checked-dark::before {
@@ -105,9 +104,9 @@ canvas {
   list-style: none; }
 
 .button {
-  background-color: #cccccc;
+  background-color: #d0d0d0;
   color: black;
-  border: 1px solid #adadad;
+  border: 1px solid #b0b0b0;
   margin: 5px auto; }
   .button:active {
-    background-color: #b7b7b7; }
+    background-color: #bbbbbb; }

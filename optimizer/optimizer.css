@@ -49,6 +49,7 @@ table {
   color: #f8f8f8; }
 
 #form {
+  height: -webkit-calc(100% - 50px);
   height: calc(100% - 50px); }
 
 .column {
@@ -86,10 +87,12 @@ table {
   height: 80%; }
 
 #cart {
+  max-height: -webkit-calc(100% - 100px);
   max-height: calc(100% - 100px); }
 
 #result {
   display: none;
+  height: -webkit-calc(100% - 50px);
   height: calc(100% - 50px);
   overflow-y: auto; }
   #result tr {

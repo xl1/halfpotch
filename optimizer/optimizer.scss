@@ -13,6 +13,7 @@ table {
 }
 
 #form {
+  height: -webkit-calc(#{unquote('100% - ' + $header-height)});
   height: calc(#{unquote('100% - ' + $header-height)});
 }
 
@@ -62,10 +63,12 @@ table {
   height: 80%;
 }
 #cart {
+  max-height: -webkit-calc(#{unquote('100% - 100px')});
   max-height: calc(#{unquote('100% - 100px')});
 }
 #result {
   display: none;
+  height: -webkit-calc(#{unquote('100% - ' + $header-height)});
   height: calc(#{unquote('100% - ' + $header-height)});
   overflow-y: auto;
 

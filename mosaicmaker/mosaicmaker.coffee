@@ -298,11 +298,14 @@ main = ->
     cancelEvent(e)
     view.show e.dataTransfer?.files?[0]
   , false
-  $('render-button').addEventListener 'click', (-> view.showBlueprint()), false
+  $('render-button').addEventListener 'click', ->
+    view.showBlueprint()
+  , false
   $('optimizer-button').addEventListener 'click', ->
+    pid = if ~option.get('mode').indexOf('brick') then 3005 else 3024
     url = '/optimizer?o=' + (
       for color in palette.colors when color.amount > 0
-        "3024,#{color.id},#{color.amount}"
+        "#{pid},#{color.id},#{color.amount}"
     ).join '|'
     window.open url
   , false

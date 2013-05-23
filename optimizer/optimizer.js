@@ -531,10 +531,14 @@
     xhr = new XMLHttpRequest();
     xhr.open('GET', url, true);
     xhr.onload = function() {
-      return r.resolve(xhr.responseText);
+      if (xhr.status === 200) {
+        return r.resolve(xhr.responseText);
+      } else {
+        return r.reject(xhr.statusText);
+      }
     };
     xhr.onerror = function() {
-      return r.reject(xhr.statusText);
+      return r.reject();
     };
     xhr.send();
     return r;

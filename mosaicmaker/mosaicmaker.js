@@ -771,11 +771,12 @@
       cancelEvent(e);
       return view.show((_ref = e.dataTransfer) != null ? (_ref1 = _ref.files) != null ? _ref1[0] : void 0 : void 0);
     }, false);
-    $('render-button').addEventListener('click', (function() {
+    $('render-button').addEventListener('click', function() {
       return view.showBlueprint();
-    }), false);
+    }, false);
     return $('optimizer-button').addEventListener('click', function() {
-      var color, url;
+      var color, pid, url;
+      pid = ~option.get('mode').indexOf('brick') ? 3005 : 3024;
       url = '/optimizer?o=' + ((function() {
         var _i, _len, _ref, _results;
         _ref = palette.colors;
@@ -783,7 +784,7 @@
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           color = _ref[_i];
           if (color.amount > 0) {
-            _results.push("3024," + color.id + "," + color.amount);
+            _results.push("" + pid + "," + color.id + "," + color.amount);
           }
         }
         return _results;

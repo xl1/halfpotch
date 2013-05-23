@@ -72,11 +72,16 @@ class StoreData(webapp2.RequestHandler):
     if source.status_code != 200:
       return self.error(500)
 
+    self.response.headers['Content-Type'] = 'application/json'
     frame = re.search(
       'Currently Available(.*)Currently Available', source.content
     )
     if not frame:
-      return self.error(500)
+      # パーツとしてはありうるけど一つも売っていない
+      # 例: Very Light Gray Brick 1 x 1
+      # http://www.bricklink.com/catalogPG.asp?P=3005&colorID=49
+      self.response.out.write('[]')
+      return
     
     pattern = re.compile(r"""
       <TR\ ALIGN="RIGHT">
@@ -107,7 +112,6 @@ class StoreData(webapp2.RequestHandler):
           'url': url
         })
 
-    self.response.headers['Content-Type'] = 'application/json'
     self.response.out.write(json.dumps(result))
 
 

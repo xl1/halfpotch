@@ -6,8 +6,12 @@ xhrget = (url, param) ->
   r = new Retention()
   xhr = new XMLHttpRequest()
   xhr.open 'GET', url, true
-  xhr.onload = -> r.resolve xhr.responseText
-  xhr.onerror = -> r.reject xhr.statusText
+  xhr.onload = ->
+    if xhr.status is 200
+      r.resolve xhr.responseText
+    else
+      r.reject xhr.statusText
+  xhr.onerror = -> r.reject()
   xhr.send()
   r
 

@@ -5,11 +5,11 @@ api_version: 1
 threadsafe: yes
 
 handlers:
-- url: /mosaicmaker
+- url: /mosaicmaker/?
   static_files: mosaicmaker/mosaicmaker.html
   upload: mosaicmaker/mosaicmaker\.html
 
-- url: /optimizer
+- url: /optimizer/?
   static_files: optimizer/optimizer.html
   upload: optimizer/optimizer\.html
 
@@ -20,9 +20,9 @@ handlers:
   static_files: index.html
   upload: index.html
 
-- url: /(.*/.*\.(js|css))
+- url: /(.*/.*\.(js|css|html))
   static_files: \1
-  upload: .*/.*\.(js|css)
+  upload: .*/.*\.(js|css|html)
 
 libraries:
 - name: webapp2

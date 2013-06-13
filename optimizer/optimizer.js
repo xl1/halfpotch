@@ -996,7 +996,7 @@
         return [];
       }
       result = [];
-      _ref = str.split('|');
+      _ref = decodeURLComponent(str).split('|');
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         s = _ref[_i];
         _ref1 = s.split(','), id = _ref1[0], colorId = _ref1[1], amount = _ref1[2];

@@ -101,7 +101,7 @@ class Router
   load: (str) ->
     return [] unless str
     result = []
-    for s in str.split '|'
+    for s in decodeURLComponent(str).split '|'
       [id, colorId, amount] = s.split ','
       part = @data.parts[id]
       color = @data.colors[colorId]

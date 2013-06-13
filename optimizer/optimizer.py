@@ -67,7 +67,7 @@ class StoreData(webapp2.RequestHandler):
         headers={ 'Cookie': 'isCountryID=JP; viewCurrencyID=74; rememberMe=N' },
         deadline=10
       )
-    except urlfetch.DownLoadError:
+    except urlfetch.DownloadError:
       return self.error(500)
     if source.status_code != 200:
       return self.error(500)

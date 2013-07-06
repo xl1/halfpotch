@@ -966,9 +966,10 @@
     }
 
     Router.prototype.setData = function(data) {
-      var item, items, query, _i, _len, _ref;
+      var item, items, query, search, _i, _len, _ref;
       this.data = data;
-      query = (_ref = /[?&]o=([\w,|]*)/.exec(location.search)) != null ? _ref[1] : void 0;
+      search = decodeURIComponent(location.search);
+      query = (_ref = /[?&]o=([\w,|]*)/.exec(search)) != null ? _ref[1] : void 0;
       items = this.load(query);
       for (_i = 0, _len = items.length; _i < _len; _i++) {
         item = items[_i];
@@ -996,7 +997,7 @@
         return [];
       }
       result = [];
-      _ref = decodeURLComponent(str).split('|');
+      _ref = str.split('|');
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         s = _ref[_i];
         _ref1 = s.split(','), id = _ref1[0], colorId = _ref1[1], amount = _ref1[2];

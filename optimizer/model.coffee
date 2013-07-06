@@ -87,7 +87,8 @@ class Router
       window.history.replaceState(query, null, '?o=' + query)
 
   setData: (@data) ->
-    query = /[?&]o=([\w,|]*)/.exec(location.search)?[1]
+    search = decodeURIComponent(location.search)
+    query = /[?&]o=([\w,|]*)/.exec(search)?[1]
     items = @load(query)
     for item in items
       @select.add(item, false)
@@ -101,7 +102,7 @@ class Router
   load: (str) ->
     return [] unless str
     result = []
-    for s in decodeURLComponent(str).split '|'
+    for s in str.split '|'
       [id, colorId, amount] = s.split ','
       part = @data.parts[id]
       color = @data.colors[colorId]

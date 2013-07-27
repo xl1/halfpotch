@@ -117,3 +117,12 @@ describe 'FormView', ->
       expect(assoc.get 'foo').toBe 'hoge'
       expect(assoc.get 'rad').toBe '2'
       document.body.removeChild form
+
+
+describe 'escapeHTML', ->
+  it 'should escape &, <, >, ", and \'', ->
+    expect(escapeHTML '&gt;<a>b"c\'').toBe '&#38;gt;&#60;a&#62;b&#34;c&#39;'
+
+describe 'unescapeHTML', ->
+  it 'should unescape &...; and &#...;', ->
+    expect(unescapeHTML '&lt;hoge&#62;').toBe '<hoge>'

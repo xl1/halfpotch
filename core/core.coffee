@@ -6,6 +6,12 @@ escapeHTML = do ->
   replacer = (x) -> '&#' + x.charCodeAt(0) + ';'
   (text) -> text.replace(re, replacer)
 
+unescapeHTML = do ->
+  div = document.createElement 'div'
+  (text) ->
+    div.innerHTML = text
+    div.textContent
+
 
 class SuperArray extends Array
   constructor: (ary=[]) -> Array::push.apply(@, ary)

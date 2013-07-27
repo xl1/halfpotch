@@ -31,7 +31,7 @@ class DataLoader
     IF(colorsData.AND codesData.AND partsData) ->
       for [colorId, colorName, rrggbb] in colorsData.result
         colors[colorId] = colorNames[colorName] =
-          { id: colorId, name: colorName, rgb: '#' + rrggbb }
+          { id: colorId, name: unescapeHTML(colorName), rgb: '#' + rrggbb }
       for [id, colorName] in codesData.result
         part = parts[id] or= { id, colors: [] }
         color = colorNames[colorName]
@@ -41,8 +41,8 @@ class DataLoader
         part = parts[id]
         continue unless part
         category = categories[categoryId] or=
-          { id: categoryId, name: categoryName, parts: [] }
-        part.name = name
+          { id: categoryId, name: unescapeHTML(categoryName), parts: [] }
+        part.name = unescapeHTML(name)
         part.categoryId = categoryId
         category.parts.push part
 

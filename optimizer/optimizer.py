@@ -5,7 +5,7 @@ import webapp2
 import re
 import json
 from HTMLParser import HTMLParser
-from google.appengine.api import urlfetch
+from google.appengine.api import urlfetch, memcache
 from google.appengine.ext import db
 
 class Fragment(db.Model):
@@ -52,36 +52,52 @@ class PartsData(webapp2.RequestHandler):
       if frag.last:
         break
 
+
 class StoreData(webapp2.RequestHandler):
+  def getData(self, part, color):
+    url = 'http://www.bricklink.com/catalogPG.asp' + \
+          '?P=' + part + '&colorID=' + color
+    # use memecache
+    data = memcache.get(url)
+    if data is not None:
+      return data
+    try:
+      source = urlfetch.fetch(
+        url,
+        headers={'Cookie': 'isCountryID=JP; viewCurrencyID=74; rememberMe=N'},
+        deadline=10
+      )
+    except urlfetch.DownloadError:
+      return None
+    if source.status_code != 200:
+      return None
+
+    frame = re.search(
+      'Currently Available(.*)Currently Available', source.content
+    )
+    if frame:
+      data = frame.group(1)
+    else:
+      data = ''
+    memcache.add(url, data, time=43200)
+    return data
+
   def get(self):
     part = self.request.get('part')
     color = self.request.get('color')
     amount = int(self.request.get('amount'))
     result = []
 
-    url = 'http://www.bricklink.com/catalogPG.asp' + \
-          '?P=' + part + '&colorID=' + color
-    try:
-      source = urlfetch.fetch(
-        url,
-        headers={ 'Cookie': 'isCountryID=JP; viewCurrencyID=74; rememberMe=N' },
-        deadline=10
-      )
-    except urlfetch.DownloadError:
-      return self.error(500)
-    if source.status_code != 200:
+    data = self.getData(part, color)
+    if data is None:
       return self.error(500)
 
     self.response.headers['Content-Type'] = 'application/json'
-    frame = re.search(
-      'Currently Available(.*)Currently Available', source.content
-    )
-    if not frame:
+    if data == '':
       # パーツとしてはありうるけど一つも売っていない
       # 例: Very Light Gray Brick 1 x 1
       # http://www.bricklink.com/catalogPG.asp?P=3005&colorID=49
-      self.response.out.write('[]')
-      return
+      return self.response.out.write('[]')
     
     pattern = re.compile(r"""
       <TR\ ALIGN="RIGHT">
@@ -98,7 +114,7 @@ class StoreData(webapp2.RequestHandler):
     """, re.VERBOSE) # unescaped spaces は無視
     parser = HTMLParser()
     seen = set()
-    for match in pattern.findall(frame.group(1)):
+    for match in pattern.findall(data):
       url, sID, name, lot, price = match
       if sID in seen:
         continue # 一つの店で複数の買い方があることがある、それは安い方のみをとる

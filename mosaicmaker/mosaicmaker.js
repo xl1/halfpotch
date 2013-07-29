@@ -114,7 +114,7 @@
       if (name == null) {
         name = 'change';
       }
-      return eve.apply(null, ["" + this._uuid + "." + name, null].concat(__slice.call(arg)));
+      return eve.apply(null, ["" + this._uuid + "." + name, this].concat(__slice.call(arg)));
     };
 
     Model.prototype.listen = function(name, func) {
@@ -125,7 +125,7 @@
         func = name;
         name = 'change';
       }
-      return eve.on("" + this._uuid + "." + name, func.bind(this));
+      return eve.on("" + this._uuid + "." + name, func);
     };
 
     return Model;

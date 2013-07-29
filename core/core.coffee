@@ -50,12 +50,12 @@ class Model
   constructor: ->
     @_uuid = uuid()
   change: (name='change', arg...) ->
-    eve "#{@_uuid}.#{name}", null, arg...
+    eve "#{@_uuid}.#{name}", @, arg...
   listen: (name='change', func) ->
     if arguments.length is 1
       func = name
       name = 'change'
-    eve.on "#{@_uuid}.#{name}", func.bind(@)
+    eve.on "#{@_uuid}.#{name}", func
 
 class View
   constructor: (@model) ->

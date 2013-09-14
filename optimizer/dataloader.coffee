@@ -33,8 +33,9 @@ class DataLoader
         colors[colorId] = colorNames[colorName] =
           { id: colorId, name: unescapeHTML(colorName), rgb: '#' + rrggbb }
       for [id, colorName] in codesData.result
-        part = parts[id] or= { id, colors: [] }
         color = colorNames[colorName]
+        continue unless color
+        part = parts[id] or= { id, colors: [] }
         if color not in part.colors
           part.colors.push color
       for [categoryId, categoryName, id, name] in partsData.result
@@ -54,7 +55,7 @@ class DataLoader
     r = new Retention()
     data = xhrget(url)
     IF(data) ->
-      r.resolve(line.split('\t') for line in data.result.split('\n'))
+      r.resolve(line.split('\t') for line in data.result.trim().split('\r\n'))
     , ELSE ->
       r.reject()
     r

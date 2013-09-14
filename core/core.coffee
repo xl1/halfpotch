@@ -56,10 +56,21 @@ class Model
       func = name
       name = 'change'
     eve.on "#{@_uuid}.#{name}", func
+  unlisten: (name='change', func) ->
+    if arguments.length is 1
+      func = name
+      name = 'change'
+    eve.off "#{@_uuid}.#{name}", func
 
 class View
-  constructor: (@model) ->
-    model.listen (arg...) => @render(arg...)
+  constructor: (model) -> @setModel(model)
+  setModel: (model) ->
+    if @_listener
+      model.unlisten @_listener
+    @model = model
+    @_listener = => @render(arguments...)
+    model.listen @_listener
+    @
   render: ->
 
 
@@ -95,6 +106,7 @@ class FormView extends View
 
   _setValue: (input) ->
     { name, value } = input
+    return unless name
     # if type is not supported (e.g. "number" on Firefox 20),
     # input.type is regarded as "text"
     switch input.getAttribute('type')?.toLowerCase()

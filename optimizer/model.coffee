@@ -6,10 +6,13 @@ class SelectModel extends Model # window.Select is reserved
 
   reset: (source) ->
     @options = []
-    ids = Object.keys(source).sort (a, b) ->
-      source[a].name.localeCompare source[b].name
-    for id in ids
-      @add source[id], false
+    if Array.isArray(source)
+      @options = @options.concat source
+    else
+      ids = Object.keys(source).sort (a, b) ->
+        source[a].name.localeCompare source[b].name
+      for id in ids
+        @add source[id], false
     @change()
 
   add: (item, change=true) ->
@@ -121,7 +124,7 @@ class Searcher
     @data = (source[key] for key in Object.keys source)
 
   tokenize: (query) ->
-    query.toLowerCase().split(/[,\s]+/).filter (str) -> str.length >= 2
+    query.toLowerCase().split(/[,\s]+/)
   convertToken: (token) ->
     token
       # "1x2x5" -> "1 x 2 x 5"
@@ -138,6 +141,8 @@ class Searcher
     return true
 
   search: (query) ->
+    if query.trim().length <= 1
+      return @options = []
     tokens = (@convertToken(t) for t in @tokenize query)
     options = []
     for item in @data when @match(item.name, tokens)
@@ -145,3 +150,33 @@ class Searcher
       if options.length > 100
         break
     @options = options
+  ###
+
+  search: (query) ->
+    if query.length <= 1
+      return @options = []
+    options = []
+    levels = {}
+    tokens = (query.toLowerCase().slice(i, i + 2) for i in [0...query.length - 1] by 1)
+    for item, i in @data
+      text = item.name.toLowerCase()
+      level = 0
+      unmatch = true
+      for t in tokens
+        if text.indexOf(t) >= 0
+          level++
+          unmatch = false
+        else if unmatch
+          level = 0
+          break
+        else
+          unmatch = true
+      if level and (not unmatch)
+        levels[item.id] = level / text.length
+        bottom = options[100]
+        if (not bottom) or (levels[bottom.id] < level / text.length)
+          options.unshift(item)
+    @options = options.sort (a, b) ->
+      levels[b.id] - levels[a.id]
+    
+  ###

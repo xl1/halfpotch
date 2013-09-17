@@ -1,0 +1,100 @@
+<!doctype html>
+<html ng-app="logger">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="/logger/logger.css">
+  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.8/angular.js"></script>
+  <script src="/logger/logger.js"></script>
+</head>
+<body ng-controller="logger">
+  <header>
+    <span class="title">
+      logger
+      <!--<label class="hint">つかいかた</label>-->
+    </span>
+    <input type="search" class="search" placeholder="ラベル または パーツ名"
+      ng-model="query" ng-change="search()">
+    <div class="controls">
+      <span ng-show="user.isLoggedIn">
+        <span class="usercard">{{ user.name }}</span>
+        <input type="button" class="button" value="Config" ng-click="configure()">
+        <a href="logout">Log out</a>
+      </span>
+      <span ng-show="! user.isLoggedIn">
+        <a href="login">Log in</a>
+      </span>
+    </div>
+  </header>
+  <div id="form">
+    <div class="column">
+      <ol class="select" id="orderList">
+        <li ng-repeat="order in orders" ng-click="select(order)"
+          ng-class="{ selected: selectedOrder == order }">
+          <!-- uneditable order summary -->
+          <span class="order-title">{{ order.title }}</span>
+          <span class="order-labels">
+            <span class="label" ng-repeat="label in order.labels"
+              ng-style="getLabelStyle(label)">
+              {{ label }}
+            </span>
+          </span>
+          <span class="order-date">{{ order.date | date:'yyyy-MM-dd' }}</span>
+        </li>
+      </ol>
+    </div>
+    <div class="main" id="main">
+      <div class="controls">
+        <input type="button" class="button delete-button" value="Delete"
+          ng-click="delete()">
+      </div>
+      <div class="summary">
+        <!-- editable order summary -->
+        <span class="order-title" contentEditable
+          ng-model="selectedOrder.title"></span>
+        <span class="order-labels">
+          <span class="label editable" ng-repeat="label in selectedOrder.labels"
+            ng-style="getLabelStyle(label)">
+            {{ label }}
+            <span class="label-delete-button" ng-click="deleteLabel(label)"></span>
+          </span>
+          <input class="label-add" placeholder="Add label"
+            ng-model="newLabelText" on-enter="addLabel()">
+        </span>
+        <input type="date" input-date ng-model="selectedOrder.date">
+      </div>
+      <div class="comment" contentEditable ng-model="selectedOrder.comment"></div>
+      <table class="lots" ng-show="selectedOrder.lots.length">
+        <thead>
+          <tr><th>部品</th><th>状態</th><th>単価</th><th>個数</th><th>小計</th></tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="lot in selectedOrder.lots">
+            <td>
+              <span class="color-box"
+                ng-style="{ backgroundColor: lot.color.rgb }"></span>
+              <a ng-show="lot.color && lot.part.id"
+                target="_blank"
+                ng-href="http://www.bricklink.com/catalogPG.asp?P={{ lot.part.id }}&amp;colorID={{ lot.color.id }}">
+                {{ lot.color.name }} {{ lot.part.name }}
+              </a>
+              <span ng-show="!(lot.color && lot.part.id)">
+                {{ lot.part.name }}
+              </span>
+            </td>
+            <td>{{ lot.condition || '' }}</td>
+            <td>{{ lot.priceEach }}</td>
+            <td>{{ lot.amount || 1 }}</td>
+            <td>{{ lot.price }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="lots-input">
+        <textarea placeholder="Add parts"
+          ng-model="selectedOrder.newLotsText"></textarea>
+        <input type="button" class="button" value="以上のパーツを追加"
+          ng-show="selectedOrder.newLotsText" ng-click="addLots()">
+      </div>
+    </div>
+  </div>
+</body>
+</html>

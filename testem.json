@@ -1,11 +1,7 @@
 {
-  "before_tests":
-    "coffee -cj test/all.js core/core.coffee test/core.spec.coffee optimizer/solver.coffee test/solver.spec.coffee && coffee -cj mosaicmaker/mosaicmaker.js core/core.coffee core/constants.coffee mosaicmaker/mosaicmaker.coffee && coffee -cj optimizer/optimizer.js core/core.coffee core/constants.coffee core/retention.coffee optimizer/dataloader.coffee optimizer/solver.coffee optimizer/model.coffee optimizer/optimizer.coffee",
+  "before_tests": "cake build",
   "src_files": [
-    "core/core.coffee",
-    "test/core.spec.coffee",
-    "optimizer/solver.coffee",
-    "test/solver.spec.coffee"
+    "*/*.coffee"
   ],
   "serve_files": [
     "eve/eve.js",

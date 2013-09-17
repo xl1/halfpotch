@@ -16,6 +16,10 @@ handlers:
 - url: /optimizer/app/.*
   script: optimizer.optimizer.app
 
+- url: /logger/?
+  static_files: logger/logger.html
+  upload: logger/logger\.html
+
 - url: /
   static_files: index.html
   upload: index.html

@@ -4,7 +4,7 @@ class Controller
     required = angular.injector().annotate(@)
     required.unshift('$scope')
     required.push ($scope, args...) =>
-      for key, value of new @()
+      for key, value of @::
         if typeof value is 'function'
           $scope[key] = value.bind($scope)
         else
@@ -14,7 +14,61 @@ class Controller
 
 
 # application
-app = angular.module('logger', [])
+app = angular.module('logger')
+
+
+# services
+app.service 'lotsTextParser', (dataLoader) ->
+  data: dataLoader.load().then ({ parts, colors }) ->
+    partList = (p for _, p of parts).sort (a, b) ->
+      b.name.length - a.name.length
+    colorList = (c for _, c of colors).sort (a, b) ->
+      b.name.length - a.name.length
+    { partList, colorList }
+
+  parse: (text) ->
+    @data.then (data) =>
+      for line in text.split(/[\r\n]+/) when line
+        @parseLotText(text, data)
+
+  searchColor: (text, { colorList }) ->
+    for c in colorList when text.indexOf(c.name) >= 0
+      return c
+    return
+
+  searchPart: (text, { partList }) ->
+    for p in partList when text.indexOf(p.name) is 0
+      return p
+    return { name: text }
+
+  parseLotText: (text, data) ->
+    condition = ''
+    amount = 1
+    priceEach = ''
+    price = ''
+    text = text.replace /\[(new|old)\]/i, (_, cond) ->
+      condition = if cond.toLowerCase() is 'new' then 'New' else 'Old'
+      ''
+    .replace /(?:\Wx(\d+))|(?:(\d+)x\W)/i, (_, a1, a2) ->
+      amount = +(a1 or a2)
+      ''
+    .replace /\s+(\\|[a-z]{3})\s*([\d,\.]+)(\s*each)?/i, (_, cur, p) ->
+      priceEach = cur + ' ' + p
+      price = cur + ' ' + (+p * amount)
+      ''
+    .replace /\s+(\\|[a-z]{3})\s*([\d,\.]+)/i, (_, cur, p) ->
+      price = cur + ' ' + p
+      ''
+    .replace /\ [.,]+ /g, -> ' '
+
+    if color = @searchColor(text, data)
+      cname = color.name
+      idx = text.indexOf(cname)
+      text = text.slice(0, idx) + text.slice(idx + cname.length)
+    part = @searchPart(text.trim(), data)
+    { condition, amount, priceEach, price, color, part }
+
+
 
 # directives
 app.directive 'contenteditable', ->
@@ -41,7 +95,7 @@ app.directive 'inputDate', (dateFilter) ->
 
 # controllers
 class Logger extends Controller
-  constructor: ->
+  constructor: (@lotsTextParser, loggerConstants) ->
     @user = {
       name: 'Anonymous'
       isLoggedIn: false
@@ -49,48 +103,7 @@ class Logger extends Controller
     @newLabelText = ''
     @newLotsText = ''
     @selectedOrder = null
-    @_debug()
-
-  _debug: ->
-    @orders = [{
-      title: 'BrickLink Order #1234567'
-      labels: ['Label1']
-      date: '2013-07-27'
-      comment: 'これはコメントです'
-      lots: [{
-        color: { id: 11, name: 'Black', rgb: 'black' }
-        part: { id: 3004, name: 'Brick 1 x 2' }
-        condition: 'New'
-        priceEach: 'EUR 0.0501'
-        amount: 100
-        price: 'EUR 5.0100'
-      }, {
-        color: { id: 5, name: 'Red', rgb: '#b30006' }
-        part: { id: 3003, name: 'Brick 2 x 2' }
-        condition: 'New'
-        priceEach: 'US $0.03'
-        amount: 200
-        price: 'US $6.00'
-      }]
-    }, {
-      title: 'BrickLink Order #1111111'
-      labels: []
-      date: '2012-12-24'
-      comment: 'コメント'
-      lots: [{
-        color: { name: '' }
-        part: { name: '#2259 Ninjago Skull Motorbike' }
-        condition: 'New'
-        priceEach: '\\4,500'
-        price: '\\4,500'
-      }]
-    }, {
-      title: 'BrickLink Order #1000000'
-      labels: ['Label1', 'Label2']
-      date: '2012-05-10'
-      comment: 'これもコメントです'
-      lots: []
-    }]
+    @orders = loggerConstants._debug.orders
 
   select: (order) ->
     @selectedOrder = order
@@ -119,9 +132,8 @@ class Logger extends Controller
 
   addLots: ->
     if order = @selectedOrder
-      lines = @newLotsText.split(/[\r\n]+/)
-      lots = (@parseLotText(line) for line in lines when line)
-      order.lots = order.lots.concat(lots)
+      @lotsTextParser.parse(@newLotsText).then (lots) ->
+        order.lots = order.lots.concat(lots)
     @newLotsText = ''
 
   deleteLot: (lot) ->

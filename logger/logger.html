@@ -2,9 +2,12 @@
 <html ng-app="logger">
 <head>
   <meta charset="utf-8">
-  <link rel="stylesheet" href="/logger/logger.css">
-  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.8/angular.js"></script>
-  <script src="/logger/logger.js"></script>
+  <link rel="stylesheet" href="logger.css">
+  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.0-rc.2/angular.js"></script>
+  <script>angular.module('logger', []);</script>
+  <script src="constants.js"></script>
+  <script src="dataloader.js"></script>
+  <script src="logger.js"></script>
 </head>
 <body ng-controller="logger">
   <header>
@@ -90,9 +93,9 @@
       </table>
       <div class="lots-input">
         <textarea placeholder="Add parts"
-          ng-model="selectedOrder.newLotsText"></textarea>
+          ng-model="newLotsText"></textarea>
         <input type="button" class="button" value="以上のパーツを追加"
-          ng-show="selectedOrder.newLotsText" ng-click="addLots()">
+          ng-show="newLotsText" ng-click="addLots()">
       </div>
     </div>
   </div>

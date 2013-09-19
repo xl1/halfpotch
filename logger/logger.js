@@ -16,7 +16,7 @@
       required.push(function() {
         var $scope, args, key, value, _ref;
         $scope = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-        _ref = new _this();
+        _ref = _this.prototype;
         for (key in _ref) {
           value = _ref[key];
           if (typeof value === 'function') {
@@ -34,7 +34,117 @@
 
   })();
 
-  app = angular.module('logger', []);
+  app = angular.module('logger');
+
+  app.service('lotsTextParser', function(dataLoader) {
+    return {
+      data: dataLoader.load().then(function(_arg) {
+        var c, colorList, colors, p, partList, parts, _;
+        parts = _arg.parts, colors = _arg.colors;
+        partList = ((function() {
+          var _results;
+          _results = [];
+          for (_ in parts) {
+            p = parts[_];
+            _results.push(p);
+          }
+          return _results;
+        })()).sort(function(a, b) {
+          return b.name.length - a.name.length;
+        });
+        colorList = ((function() {
+          var _results;
+          _results = [];
+          for (_ in colors) {
+            c = colors[_];
+            _results.push(c);
+          }
+          return _results;
+        })()).sort(function(a, b) {
+          return b.name.length - a.name.length;
+        });
+        return {
+          partList: partList,
+          colorList: colorList
+        };
+      }),
+      parse: function(text) {
+        var _this = this;
+        return this.data.then(function(data) {
+          var line, _i, _len, _ref, _results;
+          _ref = text.split(/[\r\n]+/);
+          _results = [];
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            line = _ref[_i];
+            if (line) {
+              _results.push(_this.parseLotText(text, data));
+            }
+          }
+          return _results;
+        });
+      },
+      searchColor: function(text, _arg) {
+        var c, colorList, _i, _len;
+        colorList = _arg.colorList;
+        for (_i = 0, _len = colorList.length; _i < _len; _i++) {
+          c = colorList[_i];
+          if (text.indexOf(c.name) >= 0) {
+            return c;
+          }
+        }
+      },
+      searchPart: function(text, _arg) {
+        var p, partList, _i, _len;
+        partList = _arg.partList;
+        for (_i = 0, _len = partList.length; _i < _len; _i++) {
+          p = partList[_i];
+          if (text.indexOf(p.name) === 0) {
+            return p;
+          }
+        }
+        return {
+          name: text
+        };
+      },
+      parseLotText: function(text, data) {
+        var amount, cname, color, condition, idx, part, price, priceEach;
+        condition = '';
+        amount = 1;
+        priceEach = '';
+        price = '';
+        text = text.replace(/\[(new|old)\]/i, function(_, cond) {
+          condition = cond.toLowerCase() === 'new' ? 'New' : 'Old';
+          return '';
+        }).replace(/(?:\Wx(\d+))|(?:(\d+)x\W)/i, function(_, a1, a2) {
+          amount = +(a1 || a2);
+          return '';
+        }).replace(/\s+(\\|[a-z]{3})\s*([\d,\.]+)(\s*each)?/i, function(_, cur, p) {
+          priceEach = cur + ' ' + p;
+          price = cur + ' ' + (+p * amount);
+          return '';
+        }).replace(/\s+(\\|[a-z]{3})\s*([\d,\.]+)/i, function(_, cur, p) {
+          price = cur + ' ' + p;
+          return '';
+        }).replace(/\ [.,]+ /g, function() {
+          return ' ';
+        });
+        if (color = this.searchColor(text, data)) {
+          cname = color.name;
+          idx = text.indexOf(cname);
+          text = text.slice(0, idx) + text.slice(idx + cname.length);
+        }
+        part = this.searchPart(text.trim(), data);
+        return {
+          condition: condition,
+          amount: amount,
+          priceEach: priceEach,
+          price: price,
+          color: color,
+          part: part
+        };
+      }
+    };
+  });
 
   app.directive('contenteditable', function() {
     return {
@@ -76,7 +186,8 @@
   Logger = (function(_super) {
     __extends(Logger, _super);
 
-    function Logger() {
+    function Logger(lotsTextParser, loggerConstants) {
+      this.lotsTextParser = lotsTextParser;
       this.user = {
         name: 'Anonymous',
         isLoggedIn: false
@@ -84,74 +195,8 @@
       this.newLabelText = '';
       this.newLotsText = '';
       this.selectedOrder = null;
-      this._debug();
+      this.orders = loggerConstants._debug.orders;
     }
-
-    Logger.prototype._debug = function() {
-      return this.orders = [
-        {
-          title: 'BrickLink Order #1234567',
-          labels: ['Label1'],
-          date: '2013-07-27',
-          comment: 'これはコメントです',
-          lots: [
-            {
-              color: {
-                id: 11,
-                name: 'Black',
-                rgb: 'black'
-              },
-              part: {
-                id: 3004,
-                name: 'Brick 1 x 2'
-              },
-              condition: 'New',
-              priceEach: 'EUR 0.0501',
-              amount: 100,
-              price: 'EUR 5.0100'
-            }, {
-              color: {
-                id: 5,
-                name: 'Red',
-                rgb: '#b30006'
-              },
-              part: {
-                id: 3003,
-                name: 'Brick 2 x 2'
-              },
-              condition: 'New',
-              priceEach: 'US $0.03',
-              amount: 200,
-              price: 'US $6.00'
-            }
-          ]
-        }, {
-          title: 'BrickLink Order #1111111',
-          labels: [],
-          date: '2012-12-24',
-          comment: 'コメント',
-          lots: [
-            {
-              color: {
-                name: ''
-              },
-              part: {
-                name: '#2259 Ninjago Skull Motorbike'
-              },
-              condition: 'New',
-              priceEach: '\\4,500',
-              price: '\\4,500'
-            }
-          ]
-        }, {
-          title: 'BrickLink Order #1000000',
-          labels: ['Label1', 'Label2'],
-          date: '2012-05-10',
-          comment: 'これもコメントです',
-          lots: []
-        }
-      ];
-    };
 
     Logger.prototype.select = function(order) {
       return this.selectedOrder = order;
@@ -194,21 +239,11 @@
     };
 
     Logger.prototype.addLots = function() {
-      var line, lines, lots, order;
+      var order;
       if (order = this.selectedOrder) {
-        lines = this.newLotsText.split(/[\r\n]+/);
-        lots = (function() {
-          var _i, _len, _results;
-          _results = [];
-          for (_i = 0, _len = lines.length; _i < _len; _i++) {
-            line = lines[_i];
-            if (line) {
-              _results.push(this.parseLotText(line));
-            }
-          }
-          return _results;
-        }).call(this);
-        order.lots = order.lots.concat(lots);
+        this.lotsTextParser.parse(this.newLotsText).then(function(lots) {
+          return order.lots = order.lots.concat(lots);
+        });
       }
       return this.newLotsText = '';
     };

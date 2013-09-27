@@ -4,11 +4,18 @@ runtime: python27
 api_version: 1
 threadsafe: yes
 
+
 handlers:
+# data
+- url: /data/.*
+  script: core.data.app
+
+# mosaic maker
 - url: /mosaicmaker/?
   static_files: mosaicmaker/mosaicmaker.html
   upload: mosaicmaker/mosaicmaker\.html
 
+# optimizer
 - url: /optimizer/?
   static_files: optimizer/optimizer.html
   upload: optimizer/optimizer\.html
@@ -16,17 +23,24 @@ handlers:
 - url: /optimizer/app/.*
   script: optimizer.optimizer.app
 
+# logger
 - url: /logger/?
-  static_files: logger/logger.html
-  upload: logger/logger\.html
+  static_files: logger/app.html
+  upload: logger/app\.html
 
+- url: /logger/app/.*
+  script: logger.app.app
+
+# index
 - url: /
   static_files: index.html
   upload: index.html
 
+# other public files
 - url: /(.*/.*\.(js|css|html))
   static_files: \1
   upload: .*/.*\.(js|css|html)
+
 
 libraries:
 - name: webapp2

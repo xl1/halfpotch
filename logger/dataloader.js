@@ -9,16 +9,19 @@
     return {
       cache: null,
       unescapeHTML: function(text) {
-        return angular.element('<div>').html(text).text();
+        return angular.element('<div>').html(text || '').text();
       },
       get: function(url) {
-        return $http.get(url).then(function(data) {
-          var line, _i, _len, _ref, _results;
+        return $http.get(url).then(function(_arg) {
+          var data, line, _i, _len, _ref, _results;
+          data = _arg.data;
           _ref = data.trim().split('\r\n');
           _results = [];
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
             line = _ref[_i];
-            _results.push(line.split('\t'));
+            if (line) {
+              _results.push(line.split('\t'));
+            }
           }
           return _results;
         });
@@ -39,7 +42,7 @@
           _results = [];
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
             name = _ref[_i];
-            _results.push(this.get("/data/" + name + ".tsv"));
+            _results.push(this.get("/data/" + name));
           }
           return _results;
         }).call(this)).then(function(_arg) {

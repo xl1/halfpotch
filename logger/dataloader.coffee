@@ -7,8 +7,8 @@ app.service 'dataLoader', ($q, $http, loggerConstants) ->
     angular.element('<div>').html(text).text()
 
   get: (url) ->
-    $http.get(url).then (data) ->
-      (line.split('\t') for line in data.trim().split('\r\n'))
+    $http.get(url).then ({ data }) ->
+      (line.split('\t') for line in data.trim().split('\r\n') when line)
 
   load: ->
     if @cache
@@ -19,7 +19,7 @@ app.service 'dataLoader', ($q, $http, loggerConstants) ->
     categories = {}
 
     $q.all(
-      (@get("/data/#{name}.tsv") for name in ['colors', 'codes', 'parts'])
+      (@get("/data/#{name}") for name in ['colors', 'codes', 'parts'])
     ).then ([colorsData, codesData, partsData]) =>
       for [colorId, colorName, rrggbb] in colorsData
         colors[colorId] = colorNames[colorName] =

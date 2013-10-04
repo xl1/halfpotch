@@ -77,7 +77,7 @@
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
             line = _ref[_i];
             if (line) {
-              _results.push(_this.parseLotText(text, data));
+              _results.push(_this.parseLotText(line, data));
             }
           }
           return _results;

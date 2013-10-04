@@ -29,7 +29,7 @@ app.service 'lotsTextParser', (dataLoader) ->
   parse: (text) ->
     @data.then (data) =>
       for line in text.split(/[\r\n]+/) when line
-        @parseLotText(text, data)
+        @parseLotText(line, data)
 
   searchColor: (text, { colorList }) ->
     for c in colorList when text.indexOf(c.name) >= 0

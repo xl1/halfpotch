@@ -1,7 +1,6 @@
-app = angular.module('logger')
-
-app.constant 'loggerConstants',
-  appurl: '/logger'
+angular.module('logger').constant 'loggerConstants',
+  dataurl: '/data/'
+  appurl: '/logger/'
 
   _debug:
     orders: [{

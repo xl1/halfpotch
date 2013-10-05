@@ -14,7 +14,7 @@ class Controller
 
 
 # application
-app = angular.module('logger')
+app = angular.module('logger', [])
 
 
 # services

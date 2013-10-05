@@ -1,12 +1,11 @@
-app = angular.module('logger')
-
-app.service 'dataLoader', ($q, $http, loggerConstants) ->
+angular.module('logger').service 'dataLoader', ($q, $http, loggerConstants) ->
   cache: null
 
   unescapeHTML: (text) ->
     angular.element('<div>').html(text).text()
 
-  get: (url) ->
+  get: (type) ->
+    url = loggerConstants.dataurl + type
     $http.get(url).then ({ data }) ->
       (line.split('\t') for line in data.trim().split('\r\n') when line)
 
@@ -19,7 +18,7 @@ app.service 'dataLoader', ($q, $http, loggerConstants) ->
     categories = {}
 
     $q.all(
-      (@get("/data/#{name}") for name in ['colors', 'codes', 'parts'])
+      (@get(type) for type in ['colors', 'codes', 'parts'])
     ).then ([colorsData, codesData, partsData]) =>
       for [colorId, colorName, rrggbb] in colorsData
         colors[colorId] = colorNames[colorName] =

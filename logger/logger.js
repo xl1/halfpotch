@@ -3,7 +3,8 @@
   var Controller, Logger, app,
     __slice = [].slice,
     __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   Controller = (function() {
     function Controller() {}
@@ -34,7 +35,7 @@
 
   })();
 
-  app = angular.module('logger');
+  app = angular.module('logger', []);
 
   app.service('lotsTextParser', function(dataLoader) {
     return {
@@ -263,5 +264,167 @@
   })(Controller);
 
   app.controller('logger', Logger.getController());
+
+  angular.module('logger').constant('loggerConstants', {
+    dataurl: '/data/',
+    appurl: '/logger/',
+    _debug: {
+      orders: [
+        {
+          title: 'BrickLink Order #1234567',
+          labels: ['Label1'],
+          date: '2013-07-27',
+          comment: 'これはコメントです',
+          lots: [
+            {
+              color: {
+                id: 11,
+                name: 'Black',
+                rgb: 'black'
+              },
+              part: {
+                id: 3004,
+                name: 'Brick 1 x 2'
+              },
+              condition: 'New',
+              priceEach: 'EUR 0.0501',
+              amount: 100,
+              price: 'EUR 5.0100'
+            }, {
+              color: {
+                id: 5,
+                name: 'Red',
+                rgb: '#b30006'
+              },
+              part: {
+                id: 3003,
+                name: 'Brick 2 x 2'
+              },
+              condition: 'New',
+              priceEach: 'US $0.03',
+              amount: 200,
+              price: 'US $6.00'
+            }
+          ]
+        }, {
+          title: 'BrickLink Order #1111111',
+          labels: [],
+          date: '2012-12-24',
+          comment: 'コメント',
+          lots: [
+            {
+              color: {
+                name: ''
+              },
+              part: {
+                name: '#2259 Ninjago Skull Motorbike'
+              },
+              condition: 'New',
+              priceEach: '\\4,500',
+              price: '\\4,500'
+            }
+          ]
+        }, {
+          title: 'BrickLink Order #1000000',
+          labels: ['Label1', 'Label2'],
+          date: '2012-05-10',
+          comment: 'これもコメントです',
+          lots: []
+        }
+      ]
+    }
+  });
+
+  angular.module('logger').service('dataLoader', function($q, $http, loggerConstants) {
+    return {
+      cache: null,
+      unescapeHTML: function(text) {
+        return angular.element('<div>').html(text).text();
+      },
+      get: function(type) {
+        var url;
+        url = loggerConstants.dataurl + type;
+        return $http.get(url).then(function(_arg) {
+          var data, line, _i, _len, _ref, _results;
+          data = _arg.data;
+          _ref = data.trim().split('\r\n');
+          _results = [];
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            line = _ref[_i];
+            if (line) {
+              _results.push(line.split('\t'));
+            }
+          }
+          return _results;
+        });
+      },
+      load: function() {
+        var categories, colorNames, colors, parts, type,
+          _this = this;
+        if (this.cache) {
+          return $q.when(this.cache);
+        }
+        colors = {};
+        colorNames = {};
+        parts = {};
+        categories = {};
+        return $q.all((function() {
+          var _i, _len, _ref, _results;
+          _ref = ['colors', 'codes', 'parts'];
+          _results = [];
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            type = _ref[_i];
+            _results.push(this.get(type));
+          }
+          return _results;
+        }).call(this)).then(function(_arg) {
+          var category, categoryId, categoryName, codesData, color, colorId, colorName, colorsData, id, name, part, partsData, rrggbb, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
+          colorsData = _arg[0], codesData = _arg[1], partsData = _arg[2];
+          for (_i = 0, _len = colorsData.length; _i < _len; _i++) {
+            _ref = colorsData[_i], colorId = _ref[0], colorName = _ref[1], rrggbb = _ref[2];
+            colors[colorId] = colorNames[colorName] = {
+              id: colorId,
+              name: _this.unescapeHTML(colorName),
+              rgb: '#' + rrggbb
+            };
+          }
+          for (_j = 0, _len1 = codesData.length; _j < _len1; _j++) {
+            _ref1 = codesData[_j], id = _ref1[0], colorName = _ref1[1];
+            color = colorNames[colorName];
+            if (!color) {
+              continue;
+            }
+            part = parts[id] || (parts[id] = {
+              id: id,
+              colors: []
+            });
+            if (__indexOf.call(part.colors, color) < 0) {
+              part.colors.push(color);
+            }
+          }
+          for (_k = 0, _len2 = partsData.length; _k < _len2; _k++) {
+            _ref2 = partsData[_k], categoryId = _ref2[0], categoryName = _ref2[1], id = _ref2[2], name = _ref2[3];
+            part = parts[id];
+            if (!part) {
+              continue;
+            }
+            category = categories[categoryId] || (categories[categoryId] = {
+              id: categoryId,
+              name: _this.unescapeHTML(categoryName),
+              parts: []
+            });
+            part.name = _this.unescapeHTML(name);
+            part.categoryId = categoryId;
+            category.parts.push(part);
+          }
+          return _this.cache = {
+            categories: categories,
+            parts: parts,
+            colors: colors
+          };
+        });
+      }
+    };
+  });
 
 }).call(this);

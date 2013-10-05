@@ -13,7 +13,7 @@ sources = {
     'optimizer/model', 'optimizer/optimizer'
   ]
   'test/with-server': [
-    'test/dataloader.server'
+    'test/dataloader.server', 'test/logger.server'
   ]
   'logger/logger': [
     'logger/logger', 'logger/constants', 'logger/dataloader'

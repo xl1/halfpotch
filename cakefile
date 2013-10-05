@@ -1,20 +1,32 @@
 { exec } = require 'child_process'
 
 sources = {
-  test: ['core/core', 'test/core.spec', 'optimizer/solver', 'test/solver.spec']
-  mosaicmaker: ['core/core', 'core/constants', 'mosaicmaker/mosaicmaker']
-  optimizer: [
+  'test/test': [
+    'core/core', 'test/core.spec', 'optimizer/solver', 'test/solver.spec'
+  ]
+  'mosaicmaker/mosaicmaker': [
+    'core/core', 'core/constants', 'mosaicmaker/mosaicmaker'
+  ]
+  'optimizer/optimizer': [
     'core/core', 'core/constants', 'core/retention'
     'optimizer/dataloader', 'optimizer/solver'
     'optimizer/model', 'optimizer/optimizer'
   ]
-  logger: ['logger/logger']
+  'test/with-server': [
+    'test/dataloader.server'
+  ]
+  'logger/logger': [
+    'logger/logger', 'logger/constants', 'logger/dataloader'
+  ]
 }
   
 task 'build', 'build', ->
-  for own dir, src of sources
-    opt = ["#{dir}/#{dir}.js"]
-    for s in src
-      opt.push "#{s}.coffee"
+  for own js, src of sources
+    opt = ["#{js}.js"]
+    if src
+      for s in src
+        opt.push "#{s}.coffee"
+    else
+      opt.push "#{js}.coffee"
     exec 'coffee -cj ' + opt.join(' '), (e, out, err) ->
       console.log(out + err)

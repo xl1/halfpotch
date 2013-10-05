@@ -4,7 +4,10 @@
     "*/*.coffee"
   ],
   "serve_files": [
+    "http://ajax.googleapis.com/ajax/libs/angularjs/1.2.0-rc.2/angular.js",
+    "http://ajax.googleapis.com/ajax/libs/angularjs/1.2.0-rc.2/angular-mocks.js",
     "eve/eve.js",
-    "test/all.js"
+    "logger/*.js",
+    "test/*.js"
   ]
 }

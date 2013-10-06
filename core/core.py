@@ -1,11 +1,11 @@
-# -*- encoding:utf-8 -*-
+# -*- coding:utf-8 -*-
 
-from google.appengine.ext import db
+from google.appengine.ext import ndb
 from google.appengine.api import urlfetch
 
-class Fragment(db.Model):
-  last = db.BooleanProperty()
-  data = db.TextProperty()
+class Fragment(ndb.Model):
+  last = ndb.BooleanProperty()
+  data = ndb.TextProperty()
 
 def dbSaveText(key, text):
   # 1MB ごとに分割して保存
@@ -14,7 +14,7 @@ def dbSaveText(key, text):
   for i in range(maxnum + 1): # 1MB ごとに分割
     content = text[i * MAXFILESIZE : (i + 1) * MAXFILESIZE]
     frag = Fragment.get_or_insert(key + '@' + str(i))
-    frag.data = db.Text(content, encoding='utf_8')
+    frag.data = ndb.Text(content, encoding='utf_8')
     frag.last = (i == maxnum)
     frag.put()
 
@@ -22,7 +22,7 @@ def dbLoadText(key):
   content = ''
   i = 0
   while True:
-    frag = Fragment.get_by_key_name(key + '@' + str(i))
+    frag = ndb.Key(Fragment, key + '@' + str(i)).get()
     i += 1
     if not frag:
       return None

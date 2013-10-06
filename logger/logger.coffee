@@ -46,18 +46,18 @@ app.service 'lotsTextParser', (dataLoader) ->
     amount = 1
     priceEach = ''
     price = ''
-    text = text.replace /\[(new|old)\]/i, (_, cond) ->
-      condition = if cond.toLowerCase() is 'new' then 'New' else 'Old'
+    text = text.replace /\[(new|used)\]/i, (_, cond) ->
+      condition = if cond.toLowerCase() is 'new' then 'New' else 'Used'
       ''
     .replace /(?:\Wx(\d+))|(?:(\d+)x\W)/i, (_, a1, a2) ->
       amount = +(a1 or a2)
       ''
-    .replace /\s+(\\|[a-z]{3})\s*([\d,\.]+)(\s*each)?/i, (_, cur, p) ->
-      priceEach = cur + ' ' + p
-      price = cur + ' ' + (+p * amount)
+    .replace /\s+([A-Z]{3} |[A-Z]{2} \$)([\d,\.]+)(\s*each)?/, (_, cur, p) ->
+      priceEach = cur + p
+      price = cur + (+p * amount)
       ''
-    .replace /\s+(\\|[a-z]{3})\s*([\d,\.]+)/i, (_, cur, p) ->
-      price = cur + ' ' + p
+    .replace /\s+([A-Z]{3} |[A-Z]{2} \$)([\d,\.]+)/, (_, cur, p) ->
+      price = cur + p
       ''
     .replace /\ [.,]+ /g, -> ' '
 

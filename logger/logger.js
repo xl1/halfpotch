@@ -113,18 +113,18 @@
         amount = 1;
         priceEach = '';
         price = '';
-        text = text.replace(/\[(new|old)\]/i, function(_, cond) {
-          condition = cond.toLowerCase() === 'new' ? 'New' : 'Old';
+        text = text.replace(/\[(new|used)\]/i, function(_, cond) {
+          condition = cond.toLowerCase() === 'new' ? 'New' : 'Used';
           return '';
         }).replace(/(?:\Wx(\d+))|(?:(\d+)x\W)/i, function(_, a1, a2) {
           amount = +(a1 || a2);
           return '';
-        }).replace(/\s+(\\|[a-z]{3})\s*([\d,\.]+)(\s*each)?/i, function(_, cur, p) {
-          priceEach = cur + ' ' + p;
-          price = cur + ' ' + (+p * amount);
+        }).replace(/\s+([A-Z]{3} |[A-Z]{2} \$)([\d,\.]+)(\s*each)?/, function(_, cur, p) {
+          priceEach = cur + p;
+          price = cur + (+p * amount);
           return '';
-        }).replace(/\s+(\\|[a-z]{3})\s*([\d,\.]+)/i, function(_, cur, p) {
-          price = cur + ' ' + p;
+        }).replace(/\s+([A-Z]{3} |[A-Z]{2} \$)([\d,\.]+)/, function(_, cur, p) {
+          price = cur + p;
           return '';
         }).replace(/\ [.,]+ /g, function() {
           return ' ';

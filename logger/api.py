@@ -35,13 +35,18 @@ class OrderHandler(webapp2.RequestHandler):
     self.response.out.write(json.dumps(content))
 
   def get(self, username, orderid):
-    order = Order.get_by_id(orderid)
-    if order is None:
-      return self.error(404)
-    self.respond(order)
+    if orderid.isdigit():
+      order = Order.get_by_id(int(orderid))
+      if order:
+        self.respond(order)
+        return
+    self.error(404)
 
   def put(self, username, orderid):
-    order = Order.get_by_id(orderid) or Order(username=username)
+    if orderid.isdigit():
+      order = Order.get_by_id(int(orderid))
+    else:
+      order = Order(username=username)
     content = json.loads(self.request.body)
     if content['date']:
       order.date = datetime.strptime(content['date'], '%Y-%m-%d')
@@ -50,6 +55,15 @@ class OrderHandler(webapp2.RequestHandler):
     order.content = content
     order.put()
     self.respond(order)
+
+  def delete(self, username, orderid):
+    if orderid.isdigit():
+      order = Order.get_by_id(int(orderid))
+      if order:
+        order.key.delete()
+        return
+    self.error(404)
+
 
 
 app = webapp2.WSGIApplication([

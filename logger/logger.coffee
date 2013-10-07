@@ -95,18 +95,22 @@ app.directive 'inputDate', (dateFilter) ->
 
 # controllers
 class Logger extends Controller
-  constructor: (@lotsTextParser, loggerConstants) ->
+  constructor: (@$http, @lotsTextParser, @loggerConstants) ->
     @user = {
-      name: 'Anonymous'
+      name: 'anonymous'
       isLoggedIn: false
     }
     @newLabelText = ''
     @newLotsText = ''
     @selectedOrder = null
-    @orders = loggerConstants._debug.orders
+    $http(
+      method: 'GET'
+      url: loggerConstants.apiurl + @user.name
+      responseType: 'json'
+    ).success (@orders) =>
+      @selectedOrder = orders[0]
 
-  select: (order) ->
-    @selectedOrder = order
+  select: (@selectedOrder) ->
 
   addLabel: ->
     @selectedOrder?.labels.push @newLabelText
@@ -141,6 +145,29 @@ class Logger extends Controller
       idx = order.lots.indexOf(lot)
       if idx >= 0
         order.lots.splice(idx, 1)
+
+  save: ->
+    return if @saving
+    @saving = true
+    order = @selectedOrder
+    @$http(
+      method: 'PUT'
+      url: @loggerConstants.apiurl + @user.name + '/' + (order.id or 'new')
+      data: JSON.stringify(order)
+    ).success((data) ->
+      order.id = data.id
+    ).finally =>
+      @saving = false
+
+  delete: ->
+    order = @selectedOrder
+    @selectedOrder = null
+    @orders.splice(@orders.indexOf(order), 1)
+    @$http(
+      method: 'DELETE'
+      url: @loggerConstants.apiurl + @user.name + '/' + order.id
+    )
+
 
 # initialize
 app.controller 'logger', Logger.getController()

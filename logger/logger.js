@@ -187,20 +187,30 @@
   Logger = (function(_super) {
     __extends(Logger, _super);
 
-    function Logger(lotsTextParser, loggerConstants) {
+    function Logger($http, lotsTextParser, loggerConstants) {
+      var _this = this;
+      this.$http = $http;
       this.lotsTextParser = lotsTextParser;
+      this.loggerConstants = loggerConstants;
       this.user = {
-        name: 'Anonymous',
+        name: 'anonymous',
         isLoggedIn: false
       };
       this.newLabelText = '';
       this.newLotsText = '';
       this.selectedOrder = null;
-      this.orders = loggerConstants._debug.orders;
+      $http({
+        method: 'GET',
+        url: loggerConstants.apiurl + this.user.name,
+        responseType: 'json'
+      }).success(function(orders) {
+        _this.orders = orders;
+        return _this.selectedOrder = orders[0];
+      });
     }
 
-    Logger.prototype.select = function(order) {
-      return this.selectedOrder = order;
+    Logger.prototype.select = function(selectedOrder) {
+      this.selectedOrder = selectedOrder;
     };
 
     Logger.prototype.addLabel = function() {
@@ -259,6 +269,36 @@
       }
     };
 
+    Logger.prototype.save = function() {
+      var order,
+        _this = this;
+      if (this.saving) {
+        return;
+      }
+      this.saving = true;
+      order = this.selectedOrder;
+      return this.$http({
+        method: 'PUT',
+        url: this.loggerConstants.apiurl + this.user.name + '/' + (order.id || 'new'),
+        data: JSON.stringify(order)
+      }).success(function(data) {
+        return order.id = data.id;
+      })["finally"](function() {
+        return _this.saving = false;
+      });
+    };
+
+    Logger.prototype["delete"] = function() {
+      var order;
+      order = this.selectedOrder;
+      this.selectedOrder = null;
+      this.orders.splice(this.orders.indexOf(order), 1);
+      return this.$http({
+        method: 'DELETE',
+        url: this.loggerConstants.apiurl + this.user.name + '/' + order.id
+      });
+    };
+
     return Logger;
 
   })(Controller);
@@ -268,6 +308,7 @@
   angular.module('logger').constant('loggerConstants', {
     dataurl: '/data/',
     appurl: '/logger/',
+    apiurl: '/logger/api/',
     _debug: {
       orders: [
         {

@@ -85,6 +85,12 @@ table {
     .select li:hover {
       background-color: #ccc;
       cursor: pointer; }
+  .select .order-add-button {
+    color: #aaa;
+    text-align: center;
+    line-height: 2.0; }
+    .select .order-add-button:hover {
+      color: black; }
 
 .controls {
   float: right; }
@@ -114,7 +120,7 @@ table {
   padding: 0 5px;
   margin-right: -8px; }
   .order-labels .label-delete-button::before {
-    content: 'x'; }
+    content: '\00D7'; }
 
 .order-date {
   font-size: small;
@@ -127,6 +133,14 @@ table {
   border-bottom: 1px solid #ccc; }
 .lots td {
   padding: 0 12px 0 12px; }
+.lots .lot-delete-button {
+  color: #aaa;
+  text-align: center; }
+  .lots .lot-delete-button::before {
+    content: '\00D7'; }
+  .lots .lot-delete-button:hover {
+    color: red;
+    font-weight: bold; }
 
 .lots-input textarea {
   width: 100%;

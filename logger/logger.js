@@ -184,18 +184,77 @@
     };
   });
 
+  app.factory('Order', function($http, dateFilter, loggerConstants) {
+    var Order;
+    return Order = (function() {
+      function Order(order) {
+        var _ref, _ref1;
+        if (order == null) {
+          order = {};
+        }
+        this.id = (_ref = order.id) != null ? _ref : 'new';
+        this.title = (_ref1 = order.title) != null ? _ref1 : 'New Entry';
+        this.comment = order.comment || '';
+        this.date = order.date || dateFilter(new Date(), 'yyyy-MM-dd');
+        this.labels = order.labels || [];
+        this.lots = order.lots || [];
+      }
+
+      Order.prototype.addLabel = function(text) {
+        return this.labels.push(text);
+      };
+
+      Order.prototype.deleteLabel = function(label) {
+        var idx;
+        idx = this.labels.indexOf(label);
+        if (idx >= 0) {
+          return this.labels.splice(idx, 1);
+        }
+      };
+
+      Order.prototype.addLots = function(lots) {
+        var _ref;
+        return (_ref = this.lots).push.apply(_ref, lots);
+      };
+
+      Order.prototype.deleteLot = function(lot) {
+        var idx;
+        idx = this.lots.indexOf(lot);
+        if (idx >= 0) {
+          return this.lots.splice(idx, 1);
+        }
+      };
+
+      Order.prototype.toJSON = function() {
+        return {
+          id: this.id,
+          title: this.title,
+          comment: this.comment,
+          date: this.date,
+          labels: this.labels,
+          lots: this.lots
+        };
+      };
+
+      return Order;
+
+    })();
+  });
+
   Logger = (function(_super) {
     __extends(Logger, _super);
 
-    function Logger($http, lotsTextParser, loggerConstants) {
+    function Logger($http, lotsTextParser, loggerConstants, Order) {
       var _this = this;
       this.$http = $http;
       this.lotsTextParser = lotsTextParser;
       this.loggerConstants = loggerConstants;
+      this.Order = Order;
       this.user = {
         name: 'anonymous',
         isLoggedIn: false
       };
+      this.orders = [];
       this.newLabelText = '';
       this.newLotsText = '';
       this.selectedOrder = null;
@@ -204,8 +263,12 @@
         url: loggerConstants.apiurl + this.user.name,
         responseType: 'json'
       }).success(function(orders) {
-        _this.orders = orders;
-        return _this.selectedOrder = orders[0];
+        var order, _i, _len;
+        for (_i = 0, _len = orders.length; _i < _len; _i++) {
+          order = orders[_i];
+          _this.orders.push(new Order(order));
+        }
+        return _this.selectedOrder = _this.orders[0];
       });
     }
 
@@ -213,22 +276,22 @@
       this.selectedOrder = selectedOrder;
     };
 
+    Logger.prototype.addOrder = function() {
+      this.orders.unshift(this.selectedOrder = new this.Order());
+      return this.saveOrder();
+    };
+
     Logger.prototype.addLabel = function() {
       var _ref;
       if ((_ref = this.selectedOrder) != null) {
-        _ref.labels.push(this.newLabelText);
+        _ref.addLabel(this.newLabelText);
       }
       return this.newLabelText = '';
     };
 
     Logger.prototype.deleteLabel = function(label) {
-      var idx, order;
-      if (order = this.selectedOrder) {
-        idx = order.labels.indexOf(label);
-        if (idx >= 0) {
-          return order.labels.splice(idx, 1);
-        }
-      }
+      var _ref;
+      return (_ref = this.selectedOrder) != null ? _ref.deleteLabel(label) : void 0;
     };
 
     Logger.prototype.getLabelStyle = function(label) {
@@ -245,31 +308,24 @@
       b = x & 255;
       return {
         backgroundColor: "rgb(" + r + ", " + g + ", " + b + ")",
-        color: r + g + b < 0x180 ? 'white' : 'black'
+        color: 0.3 * r + 0.58 * g + 0.12 * b < 0x80 ? 'white' : 'black'
       };
     };
 
     Logger.prototype.addLots = function() {
       var order;
       if (order = this.selectedOrder) {
-        this.lotsTextParser.parse(this.newLotsText).then(function(lots) {
-          return order.lots = order.lots.concat(lots);
-        });
+        this.lotsTextParser.parse(this.newLotsText).then(order.addLots.bind(order));
+        return this.newLotsText = '';
       }
-      return this.newLotsText = '';
     };
 
     Logger.prototype.deleteLot = function(lot) {
-      var idx, order;
-      if (order = this.selectedOrder) {
-        idx = order.lots.indexOf(lot);
-        if (idx >= 0) {
-          return order.lots.splice(idx, 1);
-        }
-      }
+      var _ref;
+      return (_ref = this.selectedOrder) != null ? _ref.deleteLot(lot) : void 0;
     };
 
-    Logger.prototype.save = function() {
+    Logger.prototype.saveOrder = function() {
       var order,
         _this = this;
       if (this.saving) {
@@ -279,7 +335,7 @@
       order = this.selectedOrder;
       return this.$http({
         method: 'PUT',
-        url: this.loggerConstants.apiurl + this.user.name + '/' + (order.id || 'new'),
+        url: this.loggerConstants.apiurl + this.user.name + '/' + order.id,
         data: JSON.stringify(order)
       }).success(function(data) {
         return order.id = data.id;
@@ -288,7 +344,7 @@
       });
     };
 
-    Logger.prototype["delete"] = function() {
+    Logger.prototype.deleteOrder = function() {
       var order;
       order = this.selectedOrder;
       this.selectedOrder = null;

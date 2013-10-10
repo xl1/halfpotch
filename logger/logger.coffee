@@ -93,13 +93,45 @@ app.directive 'inputDate', (dateFilter) ->
       elem.val(dateFilter(@$viewValue, 'yyyy-MM-dd'))
 
 
+# models
+app.factory 'Order', ($http, dateFilter, loggerConstants) ->
+  class Order
+    constructor: (order={}) ->
+      @id       = order.id      ? 'new'
+      @title    = order.title   ? 'New Entry'
+      @comment  = order.comment or ''
+      @date     = order.date    or dateFilter(new Date(), 'yyyy-MM-dd')
+      @labels   = order.labels  or []
+      @lots     = order.lots    or []
+
+    addLabel: (text) ->
+      @labels.push text
+
+    deleteLabel: (label) ->
+      idx = @labels.indexOf(label)
+      if idx >= 0
+        @labels.splice(idx, 1)
+
+    addLots: (lots) ->
+      @lots.push(lots...)
+
+    deleteLot: (lot) ->
+      idx = @lots.indexOf(lot)
+      if idx >= 0
+        @lots.splice(idx, 1)
+
+    toJSON: ->
+      { @id, @title, @comment, @date, @labels, @lots }
+
+
 # controllers
 class Logger extends Controller
-  constructor: (@$http, @lotsTextParser, @loggerConstants) ->
+  constructor: (@$http, @lotsTextParser, @loggerConstants, @Order) ->
     @user = {
       name: 'anonymous'
       isLoggedIn: false
     }
+    @orders = []
     @newLabelText = ''
     @newLotsText = ''
     @selectedOrder = null
@@ -107,20 +139,23 @@ class Logger extends Controller
       method: 'GET'
       url: loggerConstants.apiurl + @user.name
       responseType: 'json'
-    ).success (@orders) =>
-      @selectedOrder = orders[0]
+    ).success (orders) =>
+      for order in orders
+        @orders.push new Order(order)
+      @selectedOrder = @orders[0]
 
   select: (@selectedOrder) ->
 
+  addOrder: ->
+    @orders.unshift(@selectedOrder = new @Order())
+    @saveOrder()
+
   addLabel: ->
-    @selectedOrder?.labels.push @newLabelText
+    @selectedOrder?.addLabel @newLabelText
     @newLabelText = ''
 
   deleteLabel: (label) ->
-    if order = @selectedOrder
-      idx = order.labels.indexOf(label)
-      if idx >= 0
-        order.labels.splice(idx, 1)
+    @selectedOrder?.deleteLabel label
 
   getLabelStyle: (label) ->
     x = 0xC0FFEE
@@ -132,34 +167,30 @@ class Logger extends Controller
     g = (x >>> 8) & 255
     b = x & 255
     backgroundColor: "rgb(#{r}, #{g}, #{b})"
-    color: if r + g + b < 0x180 then 'white' else 'black'
+    color: if 0.3 * r + 0.58 * g + 0.12 * b < 0x80 then 'white' else 'black'
 
   addLots: ->
     if order = @selectedOrder
-      @lotsTextParser.parse(@newLotsText).then (lots) ->
-        order.lots = order.lots.concat(lots)
-    @newLotsText = ''
+      @lotsTextParser.parse(@newLotsText).then order.addLots.bind(order)
+      @newLotsText = ''
 
   deleteLot: (lot) ->
-    if order = @selectedOrder
-      idx = order.lots.indexOf(lot)
-      if idx >= 0
-        order.lots.splice(idx, 1)
+    @selectedOrder?.deleteLot lot
 
-  save: ->
+  saveOrder: ->
     return if @saving
     @saving = true
     order = @selectedOrder
     @$http(
       method: 'PUT'
-      url: @loggerConstants.apiurl + @user.name + '/' + (order.id or 'new')
+      url: @loggerConstants.apiurl + @user.name + '/' + order.id
       data: JSON.stringify(order)
     ).success((data) ->
       order.id = data.id
     ).finally =>
       @saving = false
 
-  delete: ->
+  deleteOrder: ->
     order = @selectedOrder
     @selectedOrder = null
     @orders.splice(@orders.indexOf(order), 1)

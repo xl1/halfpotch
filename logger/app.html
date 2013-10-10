@@ -2,14 +2,9 @@
 <html ng-app="logger">
 <head>
   <meta charset="utf-8">
-  <link rel="stylesheet" href="logger.css">
+  <link rel="stylesheet" href="/logger/logger.css">
   <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.0-rc.2/angular.js"></script>
-  <!--
-  <script>angular.module('logger', []);</script>
-  <script src="constants.js"></script>
-  <script src="dataloader.js"></script>
-  -->
-  <script src="logger.js"></script>
+  <script src="/logger/logger.js"></script>
 </head>
 <body ng-controller="logger">
   <header>
@@ -17,8 +12,10 @@
       logger
       <!--<label class="hint">つかいかた</label>-->
     </span>
+    <!--
     <input type="search" class="search" placeholder="ラベル または パーツ名"
       ng-model="query" ng-change="search()">
+    -->
     <div class="controls">
       <span ng-show="user.isLoggedIn">
         <span class="usercard">{{ user.name }}</span>
@@ -33,6 +30,7 @@
   <div id="form">
     <div class="column">
       <ol class="select" id="orderList">
+        <li class="order-add-button" ng-click="addOrder()">エントリを追加...</li>
         <li ng-repeat="order in orders" ng-click="select(order)"
           ng-class="{ selected: selectedOrder == order }">
           <!-- uneditable order summary -->
@@ -50,9 +48,9 @@
     <div class="main" id="main">
       <div class="controls">
         <input type="button" class="button" value="Save"
-          ng-click="save()">
+          ng-click="saveOrder()">
         <input type="button" class="button delete-button" value="Delete"
-          ng-click="delete()">
+          ng-click="deleteOrder()">
       </div>
       <div class="summary">
         <!-- editable order summary -->
@@ -64,7 +62,7 @@
             {{ label }}
             <span class="label-delete-button" ng-click="deleteLabel(label)"></span>
           </span>
-          <input class="label-add" placeholder="Add label"
+          <input class="label-add" placeholder="ラベルを追加..."
             ng-model="newLabelText" on-enter="addLabel()">
         </span>
         <input type="date" input-date ng-model="selectedOrder.date">
@@ -72,10 +70,11 @@
       <div class="comment" contentEditable ng-model="selectedOrder.comment"></div>
       <table class="lots" ng-show="selectedOrder.lots.length">
         <thead>
-          <tr><th>部品</th><th>状態</th><th>単価</th><th>個数</th><th>小計</th></tr>
+          <tr><th></th><th>名前</th><th>状態</th><th>単価</th><th>個数</th><th>小計</th></tr>
         </thead>
         <tbody>
           <tr ng-repeat="lot in selectedOrder.lots">
+            <td class="lot-delete-button" ng-click="deleteLot(lot)"></td>
             <td>
               <span class="color-box"
                 ng-style="{ backgroundColor: lot.color.rgb }"></span>
@@ -96,7 +95,7 @@
         </tbody>
       </table>
       <div class="lots-input">
-        <textarea placeholder="Add parts"
+        <textarea placeholder="パーツの追加..."
           ng-model="newLotsText"></textarea>
         <input type="button" class="button" value="以上のパーツを追加"
           ng-show="newLotsText" ng-click="addLots()">

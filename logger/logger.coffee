@@ -94,15 +94,15 @@ app.directive 'inputDate', (dateFilter) ->
 
 
 # models
-app.factory 'Order', ($http, dateFilter, loggerConstants) ->
+app.factory 'Order', (dateFilter) ->
   class Order
     constructor: (order={}) ->
-      @id       = order.id      ? 'new'
-      @title    = order.title   ? 'New Entry'
+      @id       = order.id
+      @title    = order.title ? 'New Entry'
       @comment  = order.comment or ''
-      @date     = order.date    or dateFilter(new Date(), 'yyyy-MM-dd')
-      @labels   = order.labels  or []
-      @lots     = order.lots    or []
+      @date     = order.date or dateFilter(new Date(), 'yyyy-MM-dd')
+      @labels   = order.labels or []
+      @lots     = order.lots or []
 
     addLabel: (text) ->
       @labels.push text
@@ -126,21 +126,15 @@ app.factory 'Order', ($http, dateFilter, loggerConstants) ->
 
 # controllers
 class Logger extends Controller
-  constructor: ($window, @$http, @lotsTextParser, @loggerConstants, @Order) ->
-    @user = {
-      name: 'anonymous'
-      isLoggedIn: false
-    }
+  constructor: (@$window, @$q, @$http, @lotsTextParser, @loggerConstants, @Order) ->
+    @user = {}
     @orders = []
     @newLabelText = ''
     @newLotsText = ''
     @selectedOrder = null
     @isDirty = false
-    $http(
-      method: 'GET'
-      url: loggerConstants.apiurl + @user.name
-      responseType: 'json'
-    ).success (orders) =>
+    $http.get(loggerConstants.apiurl + 'verify').success (@user) =>
+    $http.get(loggerConstants.apiurl + 'orders').success (orders) =>
       for order in orders
         @orders.push new Order(order)
       @selectedOrder = @orders[0]
@@ -154,7 +148,9 @@ class Logger extends Controller
     @selectedOrder = order
 
   addOrder: ->
+    @saveOrder()
     @orders.unshift(@selectedOrder = new @Order())
+    @isDirty = true
     @saveOrder()
 
   addLabel: ->
@@ -187,26 +183,26 @@ class Logger extends Controller
   deleteLot: (lot) ->
     @isDirty = true
     @selectedOrder.deleteLot lot
+    @selectedOrder = @orders[0]
 
   saveOrder: ->
-    return unless @isDirty
+    if not @isDirty
+      return @$q.all()
     @isDirty = false
     order = @selectedOrder
-    @$http(
-      method: 'PUT'
-      url: @loggerConstants.apiurl + @user.name + '/' + order.id
-      data: JSON.stringify(order)
-    ).success (data) ->
+    url = @loggerConstants.apiurl + 'order/' +
+      if order.id then "update/#{order.id}" else 'create'
+    @$http.post(url, JSON.stringify order).success (data) ->
       order.id = data.id
 
   deleteOrder: ->
     order = @selectedOrder
     @selectedOrder = null
     @orders.splice(@orders.indexOf(order), 1)
-    @$http(
-      method: 'DELETE'
-      url: @loggerConstants.apiurl + @user.name + '/' + order.id
-    )
+    @$http.post(@loggerConstants.apiurl + 'order/delete/' + order.id)
+
+  move: (url) ->
+    @saveOrder().then => @$window.location.href = url
 
 
 # initialize

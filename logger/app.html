@@ -20,10 +20,10 @@
       <span ng-show="user.isLoggedIn">
         <span class="usercard">{{ user.name }}</span>
         <input type="button" class="button" value="Config" ng-click="configure()">
-        <a href="logout">Log out</a>
+        <a href="#" ng-click="move('/logger/logout')">Log out</a>
       </span>
       <span ng-show="! user.isLoggedIn">
-        <a href="login">Log in</a>
+        <a href="#" ng-click="move('/logger/login')">Log in</a>
       </span>
     </div>
   </header>

@@ -28,6 +28,9 @@ handlers:
   static_files: logger/app.html
   upload: logger/app\.html
 
+- url: /logger/log(in|out)
+  script: logger.api.app
+
 - url: /logger/api/.*
   script: logger.api.app
 

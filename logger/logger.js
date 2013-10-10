@@ -184,16 +184,16 @@
     };
   });
 
-  app.factory('Order', function($http, dateFilter, loggerConstants) {
+  app.factory('Order', function(dateFilter) {
     var Order;
     return Order = (function() {
       function Order(order) {
-        var _ref, _ref1;
+        var _ref;
         if (order == null) {
           order = {};
         }
-        this.id = (_ref = order.id) != null ? _ref : 'new';
-        this.title = (_ref1 = order.title) != null ? _ref1 : 'New Entry';
+        this.id = order.id;
+        this.title = (_ref = order.title) != null ? _ref : 'New Entry';
         this.comment = order.comment || '';
         this.date = order.date || dateFilter(new Date(), 'yyyy-MM-dd');
         this.labels = order.labels || [];
@@ -244,26 +244,24 @@
   Logger = (function(_super) {
     __extends(Logger, _super);
 
-    function Logger($window, $http, lotsTextParser, loggerConstants, Order) {
+    function Logger($window, $q, $http, lotsTextParser, loggerConstants, Order) {
       var _this = this;
+      this.$window = $window;
+      this.$q = $q;
       this.$http = $http;
       this.lotsTextParser = lotsTextParser;
       this.loggerConstants = loggerConstants;
       this.Order = Order;
-      this.user = {
-        name: 'anonymous',
-        isLoggedIn: false
-      };
+      this.user = {};
       this.orders = [];
       this.newLabelText = '';
       this.newLotsText = '';
       this.selectedOrder = null;
       this.isDirty = false;
-      $http({
-        method: 'GET',
-        url: loggerConstants.apiurl + this.user.name,
-        responseType: 'json'
-      }).success(function(orders) {
+      $http.get(loggerConstants.apiurl + 'verify').success(function(user) {
+        _this.user = user;
+      });
+      $http.get(loggerConstants.apiurl + 'orders').success(function(orders) {
         var order, _i, _len;
         for (_i = 0, _len = orders.length; _i < _len; _i++) {
           order = orders[_i];
@@ -282,7 +280,9 @@
     };
 
     Logger.prototype.addOrder = function() {
+      this.saveOrder();
       this.orders.unshift(this.selectedOrder = new this.Order());
+      this.isDirty = true;
       return this.saveOrder();
     };
 
@@ -325,21 +325,19 @@
 
     Logger.prototype.deleteLot = function(lot) {
       this.isDirty = true;
-      return this.selectedOrder.deleteLot(lot);
+      this.selectedOrder.deleteLot(lot);
+      return this.selectedOrder = this.orders[0];
     };
 
     Logger.prototype.saveOrder = function() {
-      var order;
+      var order, url;
       if (!this.isDirty) {
-        return;
+        return this.$q.all();
       }
       this.isDirty = false;
       order = this.selectedOrder;
-      return this.$http({
-        method: 'PUT',
-        url: this.loggerConstants.apiurl + this.user.name + '/' + order.id,
-        data: JSON.stringify(order)
-      }).success(function(data) {
+      url = this.loggerConstants.apiurl + 'order/' + (order.id ? "update/" + order.id : 'create');
+      return this.$http.post(url, JSON.stringify(order)).success(function(data) {
         return order.id = data.id;
       });
     };
@@ -349,9 +347,13 @@
       order = this.selectedOrder;
       this.selectedOrder = null;
       this.orders.splice(this.orders.indexOf(order), 1);
-      return this.$http({
-        method: 'DELETE',
-        url: this.loggerConstants.apiurl + this.user.name + '/' + order.id
+      return this.$http.post(this.loggerConstants.apiurl + 'order/delete/' + order.id);
+    };
+
+    Logger.prototype.move = function(url) {
+      var _this = this;
+      return this.saveOrder().then(function() {
+        return _this.$window.location.href = url;
       });
     };
 
@@ -364,72 +366,7 @@
   angular.module('logger').constant('loggerConstants', {
     dataurl: '/data/',
     appurl: '/logger/',
-    apiurl: '/logger/api/',
-    _debug: {
-      orders: [
-        {
-          title: 'BrickLink Order #1234567',
-          labels: ['Label1'],
-          date: '2013-07-27',
-          comment: 'これはコメントです',
-          lots: [
-            {
-              color: {
-                id: 11,
-                name: 'Black',
-                rgb: 'black'
-              },
-              part: {
-                id: 3004,
-                name: 'Brick 1 x 2'
-              },
-              condition: 'New',
-              priceEach: 'EUR 0.0501',
-              amount: 100,
-              price: 'EUR 5.0100'
-            }, {
-              color: {
-                id: 5,
-                name: 'Red',
-                rgb: '#b30006'
-              },
-              part: {
-                id: 3003,
-                name: 'Brick 2 x 2'
-              },
-              condition: 'New',
-              priceEach: 'US $0.03',
-              amount: 200,
-              price: 'US $6.00'
-            }
-          ]
-        }, {
-          title: 'BrickLink Order #1111111',
-          labels: [],
-          date: '2012-12-24',
-          comment: 'コメント',
-          lots: [
-            {
-              color: {
-                name: ''
-              },
-              part: {
-                name: '#2259 Ninjago Skull Motorbike'
-              },
-              condition: 'New',
-              priceEach: '\\4,500',
-              price: '\\4,500'
-            }
-          ]
-        }, {
-          title: 'BrickLink Order #1000000',
-          labels: ['Label1', 'Label2'],
-          date: '2012-05-10',
-          comment: 'これもコメントです',
-          lots: []
-        }
-      ]
-    }
+    apiurl: '/logger/api/'
   });
 
   angular.module('logger').service('dataLoader', function($q, $http, loggerConstants) {

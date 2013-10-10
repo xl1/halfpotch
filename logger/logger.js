@@ -244,7 +244,7 @@
   Logger = (function(_super) {
     __extends(Logger, _super);
 
-    function Logger($http, lotsTextParser, loggerConstants, Order) {
+    function Logger($window, $http, lotsTextParser, loggerConstants, Order) {
       var _this = this;
       this.$http = $http;
       this.lotsTextParser = lotsTextParser;
@@ -258,6 +258,7 @@
       this.newLabelText = '';
       this.newLotsText = '';
       this.selectedOrder = null;
+      this.isDirty = false;
       $http({
         method: 'GET',
         url: loggerConstants.apiurl + this.user.name,
@@ -270,10 +271,14 @@
         }
         return _this.selectedOrder = _this.orders[0];
       });
+      $window.addEventListener('beforeunload', function() {
+        _this.saveOrder();
+      }, false);
     }
 
-    Logger.prototype.select = function(selectedOrder) {
-      this.selectedOrder = selectedOrder;
+    Logger.prototype.select = function(order) {
+      this.saveOrder();
+      return this.selectedOrder = order;
     };
 
     Logger.prototype.addOrder = function() {
@@ -282,16 +287,14 @@
     };
 
     Logger.prototype.addLabel = function() {
-      var _ref;
-      if ((_ref = this.selectedOrder) != null) {
-        _ref.addLabel(this.newLabelText);
-      }
+      this.isDirty = true;
+      this.selectedOrder.addLabel(this.newLabelText);
       return this.newLabelText = '';
     };
 
     Logger.prototype.deleteLabel = function(label) {
-      var _ref;
-      return (_ref = this.selectedOrder) != null ? _ref.deleteLabel(label) : void 0;
+      this.isDirty = true;
+      return this.selectedOrder.deleteLabel(label);
     };
 
     Logger.prototype.getLabelStyle = function(label) {
@@ -314,24 +317,23 @@
 
     Logger.prototype.addLots = function() {
       var order;
-      if (order = this.selectedOrder) {
-        this.lotsTextParser.parse(this.newLotsText).then(order.addLots.bind(order));
-        return this.newLotsText = '';
-      }
+      order = this.selectedOrder;
+      this.isDirty = true;
+      this.lotsTextParser.parse(this.newLotsText).then(order.addLots.bind(order));
+      return this.newLotsText = '';
     };
 
     Logger.prototype.deleteLot = function(lot) {
-      var _ref;
-      return (_ref = this.selectedOrder) != null ? _ref.deleteLot(lot) : void 0;
+      this.isDirty = true;
+      return this.selectedOrder.deleteLot(lot);
     };
 
     Logger.prototype.saveOrder = function() {
-      var order,
-        _this = this;
-      if (this.saving) {
+      var order;
+      if (!this.isDirty) {
         return;
       }
-      this.saving = true;
+      this.isDirty = false;
       order = this.selectedOrder;
       return this.$http({
         method: 'PUT',
@@ -339,8 +341,6 @@
         data: JSON.stringify(order)
       }).success(function(data) {
         return order.id = data.id;
-      })["finally"](function() {
-        return _this.saving = false;
       });
     };
 

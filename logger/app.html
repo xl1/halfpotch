@@ -47,15 +47,13 @@
     </div>
     <div class="main" id="main">
       <div class="controls">
-        <input type="button" class="button" value="Save"
-          ng-click="saveOrder()">
         <input type="button" class="button delete-button" value="Delete"
           ng-click="deleteOrder()">
       </div>
       <div class="summary">
         <!-- editable order summary -->
         <span class="order-title" contentEditable
-          ng-model="selectedOrder.title"></span>
+          ng-model="selectedOrder.title" ng-change="isDirty = true"></span>
         <span class="order-labels">
           <span class="label editable" ng-repeat="label in selectedOrder.labels"
             ng-style="getLabelStyle(label)">
@@ -65,9 +63,11 @@
           <input class="label-add" placeholder="ラベルを追加..."
             ng-model="newLabelText" on-enter="addLabel()">
         </span>
-        <input type="date" input-date ng-model="selectedOrder.date">
+        <input type="date" input-date
+          ng-model="selectedOrder.date" ng-change="isDirty = true">
       </div>
-      <div class="comment" contentEditable ng-model="selectedOrder.comment"></div>
+      <div class="comment" contentEditable
+        ng-model="selectedOrder.comment" ng-change="isDirty = true"></div>
       <table class="lots" ng-show="selectedOrder.lots.length">
         <thead>
           <tr><th></th><th>名前</th><th>状態</th><th>単価</th><th>個数</th><th>小計</th></tr>

@@ -126,7 +126,7 @@ app.factory 'Order', ($http, dateFilter, loggerConstants) ->
 
 # controllers
 class Logger extends Controller
-  constructor: (@$http, @lotsTextParser, @loggerConstants, @Order) ->
+  constructor: ($window, @$http, @lotsTextParser, @loggerConstants, @Order) ->
     @user = {
       name: 'anonymous'
       isLoggedIn: false
@@ -135,6 +135,7 @@ class Logger extends Controller
     @newLabelText = ''
     @newLotsText = ''
     @selectedOrder = null
+    @isDirty = false
     $http(
       method: 'GET'
       url: loggerConstants.apiurl + @user.name
@@ -143,19 +144,27 @@ class Logger extends Controller
       for order in orders
         @orders.push new Order(order)
       @selectedOrder = @orders[0]
+    $window.addEventListener 'beforeunload', =>
+      @saveOrder()
+      return
+    , false
 
-  select: (@selectedOrder) ->
+  select: (order) ->
+    @saveOrder()
+    @selectedOrder = order
 
   addOrder: ->
     @orders.unshift(@selectedOrder = new @Order())
     @saveOrder()
 
   addLabel: ->
-    @selectedOrder?.addLabel @newLabelText
+    @isDirty = true
+    @selectedOrder.addLabel @newLabelText
     @newLabelText = ''
 
   deleteLabel: (label) ->
-    @selectedOrder?.deleteLabel label
+    @isDirty = true
+    @selectedOrder.deleteLabel label
 
   getLabelStyle: (label) ->
     x = 0xC0FFEE
@@ -170,25 +179,25 @@ class Logger extends Controller
     color: if 0.3 * r + 0.58 * g + 0.12 * b < 0x80 then 'white' else 'black'
 
   addLots: ->
-    if order = @selectedOrder
-      @lotsTextParser.parse(@newLotsText).then order.addLots.bind(order)
-      @newLotsText = ''
+    order = @selectedOrder
+    @isDirty = true
+    @lotsTextParser.parse(@newLotsText).then order.addLots.bind(order)
+    @newLotsText = ''
 
   deleteLot: (lot) ->
-    @selectedOrder?.deleteLot lot
+    @isDirty = true
+    @selectedOrder.deleteLot lot
 
   saveOrder: ->
-    return if @saving
-    @saving = true
+    return unless @isDirty
+    @isDirty = false
     order = @selectedOrder
     @$http(
       method: 'PUT'
       url: @loggerConstants.apiurl + @user.name + '/' + order.id
       data: JSON.stringify(order)
-    ).success((data) ->
+    ).success (data) ->
       order.id = data.id
-    ).finally =>
-      @saving = false
 
   deleteOrder: ->
     order = @selectedOrder

@@ -337,6 +337,7 @@
       }
     },
     optimizer: {
+      dataurl: '/data/',
       appurl: '/optimizer/app'
     }
   };
@@ -577,10 +578,10 @@
       colorNames = {};
       parts = {};
       categories = {};
-      baseurl = constants.optimizer.appurl + '/getpartsdata';
-      colorsData = this.get(baseurl + '?num=3');
-      codesData = this.get(baseurl + '?num=5');
-      partsData = this.get(baseurl + '?num=0');
+      baseurl = constants.optimizer.dataurl;
+      colorsData = this.get(baseurl + 'colors');
+      codesData = this.get(baseurl + 'codes');
+      partsData = this.get(baseurl + 'parts');
       return IF(colorsData.AND(codesData.AND(partsData)))(function() {
         var category, categoryId, categoryName, color, colorId, colorName, id, name, part, rrggbb, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2, _ref3, _ref4, _ref5;
         _ref = colorsData.result;

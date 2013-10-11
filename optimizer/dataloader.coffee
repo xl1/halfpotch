@@ -22,10 +22,10 @@ class DataLoader
     parts = {}
     categories = {}
 
-    baseurl = constants.optimizer.appurl + '/getpartsdata'
-    colorsData = @get baseurl + '?num=3'
-    codesData = @get baseurl + '?num=5'
-    partsData = @get baseurl + '?num=0'
+    baseurl = constants.optimizer.dataurl
+    colorsData = @get baseurl + 'colors'
+    codesData = @get baseurl + 'codes'
+    partsData = @get baseurl + 'parts'
 
     # 処理するの、xhr する時間に比べたら一瞬で終わるし全部ロードしてからでいい
     IF(colorsData.AND codesData.AND partsData) ->

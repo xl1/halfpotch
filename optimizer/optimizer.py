@@ -6,51 +6,6 @@ import re
 import json
 from HTMLParser import HTMLParser
 from google.appengine.api import urlfetch, memcache
-from google.appengine.ext import db
-
-class Fragment(db.Model):
-  last = db.BooleanProperty()
-  data = db.TextProperty()
-
-class BrickLinkData(webapp2.RequestHandler):
-  def get(self):
-    # fetch CSV data from Bricklink.com
-    MAXFILESIZE = 1000000
-
-    # num = 0(parts), 3(colors), or 5(codes)
-    num = self.request.get('num')
-    url = 'http://www.bricklink.com/catalogDownload.asp' + \
-          '?a=a&itemType=P&downloadType=T&viewType=' + num
-    try:
-      result = urlfetch.fetch(url, deadline=10)
-    except urlfetch.DownloadError:
-      return
-    if result.status_code != 200:
-      return
-
-    maxnum = len(result.content) / MAXFILESIZE
-    for j in range(maxnum+1): # 1MB ごとに分割
-      content = result.content[j*MAXFILESIZE : (j+1)*MAXFILESIZE]
-      frag = Fragment.get_or_insert(num + '@' + str(j))
-      frag.data = db.Text(content, encoding='utf_8')
-      frag.last = (j == maxnum)
-      frag.put()
-    self.response.out.write('succeeded')
-
-class PartsData(webapp2.RequestHandler):
-  def get(self):
-    # serve CSV data of categories, codes, and colors
-    i = 0
-    self.response.headers['Content-Type'] = 'text/plain'
-    while True:
-      frag = Fragment.get_by_key_name(self.request.get('num') + '@' + str(i))
-      i += 1
-      if not frag:
-        self.error(404)
-        break
-      self.response.out.write(frag.data)
-      if frag.last:
-        break
 
 
 class StoreData(webapp2.RequestHandler):
@@ -132,7 +87,5 @@ class StoreData(webapp2.RequestHandler):
 
 
 app = webapp2.WSGIApplication([
-  ('/optimizer/app/getpartsdata', PartsData),
-  ('/optimizer/app/getstoredata', StoreData),
-  ('/optimizer/app/fetchbldata', BrickLinkData)
+  ('/optimizer/app/getstoredata', StoreData)
 ], debug=True)

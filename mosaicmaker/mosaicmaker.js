@@ -336,6 +336,7 @@
       }
     },
     optimizer: {
+      dataurl: '/data/',
       appurl: '/optimizer/app'
     }
   };

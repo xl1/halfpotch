@@ -126,9 +126,7 @@
         }).replace(/\s+([A-Z]{3} |[A-Z]{2} \$)([\d,\.]+)/, function(_, cur, p) {
           price = cur + p;
           return '';
-        }).replace(/\ [.,]+ /g, function() {
-          return ' ';
-        });
+        }).replace(/\ [.,]+ /g, ' ');
         if (color = this.searchColor(text, data)) {
           cname = color.name;
           idx = text.indexOf(cname);
@@ -184,11 +182,12 @@
     };
   });
 
-  app.factory('Order', function(dateFilter) {
+  app.factory('Order', function(dateFilter, lotsTextParser) {
     var Order;
     return Order = (function() {
       function Order(order) {
-        var _ref;
+        var _ref,
+          _this = this;
         if (order == null) {
           order = {};
         }
@@ -198,6 +197,11 @@
         this.date = order.date || dateFilter(new Date(), 'yyyy-MM-dd');
         this.labels = order.labels || [];
         this.lots = order.lots || [];
+        if (order.unresolved) {
+          lotsTextParser.parse(order.lotsText).then(function(lots) {
+            _this.lots = lots;
+          });
+        }
       }
 
       Order.prototype.addLabel = function(text) {

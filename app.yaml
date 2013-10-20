@@ -4,6 +4,8 @@ runtime: python27
 api_version: 1
 threadsafe: yes
 
+inbound_services:
+- mail
 
 handlers:
 # data
@@ -33,6 +35,10 @@ handlers:
 
 - url: /logger/api/.*
   script: logger.api.app
+
+- url: /_ah/mail/.*
+  script: logger.api.app
+  login: admin
 
 # index
 - url: /

@@ -59,7 +59,7 @@ app.service 'lotsTextParser', (dataLoader) ->
     .replace /\s+([A-Z]{3} |[A-Z]{2} \$)([\d,\.]+)/, (_, cur, p) ->
       price = cur + p
       ''
-    .replace /\ [.,]+ /g, -> ' '
+    .replace /\ [.,]+ /g, ' '
 
     if color = @searchColor(text, data)
       cname = color.name
@@ -94,7 +94,7 @@ app.directive 'inputDate', (dateFilter) ->
 
 
 # models
-app.factory 'Order', (dateFilter) ->
+app.factory 'Order', (dateFilter, lotsTextParser) ->
   class Order
     constructor: (order={}) ->
       @id       = order.id
@@ -103,6 +103,8 @@ app.factory 'Order', (dateFilter) ->
       @date     = order.date or dateFilter(new Date(), 'yyyy-MM-dd')
       @labels   = order.labels or []
       @lots     = order.lots or []
+      if order.unresolved
+        lotsTextParser.parse(order.lotsText).then (@lots) =>
 
     addLabel: (text) ->
       @labels.push text

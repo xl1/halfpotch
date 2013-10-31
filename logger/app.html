@@ -2,6 +2,7 @@
 <html ng-app="logger">
 <head>
   <meta charset="utf-8">
+  <title>Logger - halfpotch</title>
   <link rel="stylesheet" href="/logger/logger.css">
   <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.0-rc.2/angular.js"></script>
   <script src="/logger/logger.js"></script>
@@ -19,7 +20,9 @@
     <div class="controls">
       <span ng-show="user.isLoggedIn">
         <span class="usercard">{{ user.name }}</span>
+        <!--
         <input type="button" class="button" value="Config" ng-click="configure()">
+        -->
         <a href="#" ng-click="move('/logger/logout')">Log out</a>
       </span>
       <span ng-show="! user.isLoggedIn">

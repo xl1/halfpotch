@@ -128,12 +128,16 @@ table {
 
 .comment {
   margin: 15px 0; }
+  .comment:empty::before {
+    color: #aaa;
+    content: '\30b3\30e1\30f3\30c8\3092\8ffd\52a0...'; }
 
 .lots tr {
   border-bottom: 1px solid #ccc; }
 .lots td {
   padding: 0 12px 0 12px; }
 .lots .lot-delete-button {
+  cursor: pointer;
   color: #aaa;
   text-align: center; }
   .lots .lot-delete-button::before {

@@ -113,6 +113,10 @@ table {
 }
 .comment {
   margin: 15px 0;
+  &:empty::before {
+    color: #aaa;
+    content: '\30b3\30e1\30f3\30c8\3092\8ffd\52a0...';
+  }
 }
 .lots {
   tr {
@@ -125,6 +129,7 @@ table {
     padding: 0 12px 0 12px;
   }
   .lot-delete-button {
+    cursor: pointer;
     color: #aaa;
     text-align: center;
     &::before {

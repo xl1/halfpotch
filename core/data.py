@@ -3,6 +3,7 @@
 import webapp2
 from google.appengine.api import memcache
 import core
+import re
 
 
 class TSVHandler(webapp2.RequestHandler):
@@ -36,7 +37,20 @@ class TSVUpdater(webapp2.RequestHandler):
       self.error(500)
 
 
+class FXHandler(webapp2.RequestHandler):
+  def get(self, curFrom, curTo):
+    result = core.fetch(
+      'http://www.google.com/ig/calculator?q=1%s=?%s' % (curFrom, curTo)
+    )
+    if result:
+      val = re.search(r'rhs: "([\d.,]*)', result.content).group(1)
+      self.response.out.write(val)
+    else:
+      self.error(500)
+
+
 app = webapp2.WSGIApplication([
   (r'/data/(\w+)', TSVHandler),
-  (r'/data/(\w+)/update', TSVUpdater)
+  (r'/data/(\w+)/update', TSVUpdater),
+  (r'/data/fx/([^/]+)/([^/]+)', FXHandler)
 ], debug=True)

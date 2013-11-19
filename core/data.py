@@ -3,7 +3,7 @@
 import webapp2
 from google.appengine.api import memcache
 import core
-import re
+import keys
 
 
 class TSVHandler(webapp2.RequestHandler):
@@ -38,19 +38,25 @@ class TSVUpdater(webapp2.RequestHandler):
 
 
 class FXHandler(webapp2.RequestHandler):
-  def get(self, curFrom, curTo):
-    result = core.fetch(
-      'http://www.google.com/ig/calculator?q=1%s=?%s' % (curFrom, curTo)
+  def get(self):
+    url = (
+      'http://openexchangerates.org/api/latest.json?app_id=' +
+      keys.openexchangerates
     )
-    if result:
-      val = re.search(r'rhs: "([\d.,]*)', result.content).group(1)
-      self.response.out.write(val)
-    else:
-      self.error(500)
+    data = memcache.get(url)
+    if data is None:
+      result = core.fetch(url)
+      if result:
+        data = result.content
+        memcache.set(url, data, time=43200)
+      else:
+        return self.error(500)
+    self.response.headers['Content-Type'] = 'application/json'
+    self.response.out.write(data)
 
 
 app = webapp2.WSGIApplication([
-  (r'/data/(\w+)', TSVHandler),
-  (r'/data/(\w+)/update', TSVUpdater),
-  (r'/data/fx/([^/]+)/([^/]+)', FXHandler)
+  (r'/data/(parts|colors|codes)', TSVHandler),
+  (r'/data/(parts|colors|codes)/update', TSVUpdater),
+  (r'/data/fx', FXHandler)
 ], debug=True)

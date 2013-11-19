@@ -102,7 +102,7 @@ table {
     padding: 0 5px;
     margin-right: -8px;
     &::before {
-      content: '\00D7';
+      content: '×';
     }
   }
 }
@@ -115,7 +115,7 @@ table {
   margin: 15px 0;
   &:empty::before {
     color: #aaa;
-    content: '\30b3\30e1\30f3\30c8\3092\8ffd\52a0...';
+    content: 'コメントを追加...';
   }
 }
 .lots {
@@ -133,7 +133,7 @@ table {
     color: #aaa;
     text-align: center;
     &::before {
-      content: '\00D7';
+      content: '×';
     }
     &:hover {
       color: red;

@@ -2,3 +2,4 @@ test/*.js
 *.pyc
 *.crx
 index.yaml
+core/keys.py

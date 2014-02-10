@@ -94,8 +94,12 @@ app.directive 'inputDate', (dateFilter) ->
 
 
 # models
-app.factory 'Order', (dateFilter, lotsTextParser) ->
+app.factory 'Order', ($http, dateFilter, lotsTextParser, route) ->
   class Order
+    @fetchAll: ->
+      $http.get(route.logger.api.orders()).then ({ data }) ->
+        (new Order o for o in data)
+
     constructor: (order={}) ->
       @id       = order.id
       @title    = order.title ? 'New Entry'
@@ -124,6 +128,16 @@ app.factory 'Order', (dateFilter, lotsTextParser) ->
 
     toJSON: ->
       { @id, @title, @comment, @date, @labels, @lots }
+
+    save: ->
+      order = route.logger.api.order
+      $http.post(
+        if @id then order.update(@id) else order.create()
+        @toJSON()
+      ).success ({ id: @id }) =>
+
+    delete: ->
+      $http.post route.logger.api.order.delete @id
 
 
 # controllers

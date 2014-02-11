@@ -218,6 +218,11 @@ class OrderDetail extends Controller
     order.delete()
 
 
+class Statistics extends Controller
+  constructor: ->
+
+
 # initialize
 app.controller 'logger', Logger.getController()
 app.controller 'orderDetail', OrderDetail.getController()
+app.controller 'statistics', Statistics.getController()

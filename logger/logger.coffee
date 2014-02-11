@@ -142,17 +142,22 @@ app.factory 'Order', ($http, dateFilter, lotsTextParser, route) ->
 
 # controllers
 class Logger extends Controller
-  constructor: (@$window, @$q, @$http, @lotsTextParser, @loggerConstants, @Order) ->
+  constructor: (@$window, $http, route) ->
     @user = {}
+    $http.get(route.logger.api.verify()).success (@user) =>
+
+  move: (url) ->
+    @$window.location.href = url
+
+
+class OrderDetail extends Controller
+  constructor: (@$window, @$q, @lotsTextParser, @Order) ->
     @orders = []
     @newLabelText = ''
     @newLotsText = ''
     @selectedOrder = null
     @isDirty = false
-    $http.get(loggerConstants.apiurl + 'verify').success (@user) =>
-    $http.get(loggerConstants.apiurl + 'orders').success (orders) =>
-      for order in orders
-        @orders.push new Order(order)
+    Order.fetchAll().then (@orders) =>
       @selectedOrder = @orders[0]
     $window.addEventListener 'beforeunload', =>
       @saveOrder()
@@ -199,27 +204,20 @@ class Logger extends Controller
   deleteLot: (lot) ->
     @isDirty = true
     @selectedOrder.deleteLot lot
-    @selectedOrder = @orders[0]
 
   saveOrder: ->
     if not @isDirty
       return @$q.all()
     @isDirty = false
-    order = @selectedOrder
-    url = @loggerConstants.apiurl + 'order/' +
-      if order.id then "update/#{order.id}" else 'create'
-    @$http.post(url, JSON.stringify order).success (data) ->
-      order.id = data.id
+    @selectedOrder.save()
 
   deleteOrder: ->
     order = @selectedOrder
     @selectedOrder = null
     @orders.splice(@orders.indexOf(order), 1)
-    @$http.post(@loggerConstants.apiurl + 'order/delete/' + order.id)
-
-  move: (url) ->
-    @saveOrder().then => @$window.location.href = url
+    order.delete()
 
 
 # initialize
 app.controller 'logger', Logger.getController()
+app.controller 'orderDetail', OrderDetail.getController()

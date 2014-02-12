@@ -53,6 +53,7 @@ app.service 'lotsTextParser', (dataLoader) ->
       amount = +(a1 or a2)
       ''
     .replace /\s+([A-Z]{3} |[A-Z]{2} \$)([\d,\.]+)(\s*each)?/, (_, cur, p) ->
+      p = p.replace(/,/g, '')
       priceEach = cur + p
       price = cur + (+p * amount)
       ''

@@ -126,6 +126,7 @@
           amount = +(a1 || a2);
           return '';
         }).replace(/\s+([A-Z]{3} |[A-Z]{2} \$)([\d,\.]+)(\s*each)?/, function(_, cur, p) {
+          p = p.replace(/,/g, '');
           priceEach = cur + p;
           price = cur + (+p * amount);
           return '';

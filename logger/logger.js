@@ -470,6 +470,74 @@
     return route;
   });
 
+  angular.module('logger').service('exchangeRate', function($http, route) {
+    var currencyMap, data;
+    data = null;
+    currencyMap = {
+      'ARS ': 'ARS',
+      'AU $': 'AUD',
+      'BRL ': 'BRL',
+      'BGN ': 'BGN',
+      'CA $': 'CAD',
+      'CNY ': 'CNY',
+      'HRK ': 'HRK',
+      'CZK ': 'CZK',
+      'DKK ': 'DKK',
+      'EEK ': 'EEK',
+      'EUR ': 'EUR',
+      'GTQ ': 'GTQ',
+      'HK $': 'HKD',
+      'HUF ': 'HUF',
+      'INR ': 'INR',
+      'IDR ': 'IDR',
+      'ILS ': 'ILS',
+      'JPY ': 'JPY',
+      'LVL ': 'LVL',
+      'LTL ': 'LTL',
+      'MOP ': 'MOP',
+      'MYR ': 'MYR',
+      'MXN ': 'MXN',
+      'NZ $': 'NZD',
+      'NOK ': 'NOK',
+      'PHP ': 'PHP',
+      'PLN ': 'PLN',
+      'GBP ': 'GBP',
+      'ROL ': 'RON',
+      'RUB ': 'RUB',
+      'RSD ': 'RSD',
+      'SG $': 'SGD',
+      'ZAR ': 'ZAR',
+      'KRW ': 'KRW',
+      'SEK ': 'SEK',
+      'CHF ': 'CHF',
+      'TWD ': 'TWD',
+      'THB ': 'THB',
+      'TRY ': 'TRY',
+      'UAH ': 'UAH',
+      'US $': 'USD',
+      '\\': 'JPY'
+    };
+    return {
+      load: function() {
+        return $http.get(route.data.fx()).success((function(_this) {
+          return function(_arg) {
+            var rates;
+            rates = _arg.rates;
+            return data = rates;
+          };
+        })(this));
+      },
+      exchange: function(fromValue, toCurrency) {
+        var fromCurrency, r, value;
+        if (r = /([A-Z]{3} |[A-Z]{2} \$)([\d,\.]+)/.exec(fromValue)) {
+          fromCurrency = r[1];
+          value = +r[2];
+          return value * data[toCurrency] / data[currencyMap[fromCurrency]];
+        }
+      }
+    };
+  });
+
   angular.module('logger').service('dataLoader', function($q, $http, route) {
     return {
       cache: null,

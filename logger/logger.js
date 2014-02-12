@@ -476,16 +476,14 @@
     return route;
   });
 
-  angular.module('logger').service('dataLoader', function($q, $http, loggerConstants) {
+  angular.module('logger').service('dataLoader', function($q, $http, route) {
     return {
       cache: null,
       unescapeHTML: function(text) {
         return angular.element('<div>').html(text).text();
       },
       get: function(type) {
-        var url;
-        url = loggerConstants.dataurl + type;
-        return $http.get(url).then(function(_arg) {
+        return $http.get(route.data[type]()).then(function(_arg) {
           var data, line, _i, _len, _ref, _results;
           data = _arg.data;
           _ref = data.trim().split('\r\n');

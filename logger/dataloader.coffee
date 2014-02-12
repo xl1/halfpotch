@@ -1,12 +1,11 @@
-angular.module('logger').service 'dataLoader', ($q, $http, loggerConstants) ->
+angular.module('logger').service 'dataLoader', ($q, $http, route) ->
   cache: null
 
   unescapeHTML: (text) ->
     angular.element('<div>').html(text).text()
 
   get: (type) ->
-    url = loggerConstants.dataurl + type
-    $http.get(url).then ({ data }) ->
+    $http.get(route.data[type]()).then ({ data }) ->
       (line.split('\t') for line in data.trim().split('\r\n') when line)
 
   load: ->

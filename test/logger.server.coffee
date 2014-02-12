@@ -157,10 +157,7 @@ lotsTextParserTestResult = [
   }
 ]
 describe 'lotsTextParser', ->
-  loggerConstants = injector.get 'loggerConstants'
-  loggerConstants.dataurl = '//localhost:8080/data/'
-  angular.mock.module ($provide) ->
-    $provide.constant 'loggerConstants', loggerConstants
+  injector.get('route').setBaseURL '//localhost:8080'
   lotsTextParser = injector.get 'lotsTextParser'
   describe '#parse()', ->
     result = null

@@ -1,10 +1,7 @@
 injector = angular.injector ['ng', 'logger']
 
 describe 'dataLoader', ->
-  loggerConstants = injector.get 'loggerConstants'
-  loggerConstants.dataurl = '//localhost:8080/data/'
-  angular.mock.module ($provide) ->
-    $provide.constant 'loggerConstants', loggerConstants
+  injector.get('route').setBaseURL '//localhost:8080'
   dataLoader = injector.get 'dataLoader'
 
   describe '#load()', ->

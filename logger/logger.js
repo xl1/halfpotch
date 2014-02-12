@@ -399,26 +399,24 @@
   Statistics = (function(_super) {
     __extends(Statistics, _super);
 
-    function Statistics(Order, exchangeRate, $q) {
+    function Statistics(Order, exchangeRate) {
       this.exchangeRate = exchangeRate;
       this.totalParts = 0;
       this.totalPrice = 0;
       this.colors = [];
-      this.orders = [];
-      $q.all([Order.fetchAll(), exchangeRate.load()]).then((function(_this) {
-        return function(_arg) {
-          _this.orders = _arg[0];
-          return _this.calc();
+      exchangeRate.load().then((function(_this) {
+        return function() {
+          return _this.$watch('$parent.selectedOrder', _this.update.bind(_this));
         };
       })(this));
     }
 
-    Statistics.prototype.calc = function() {
+    Statistics.prototype.update = function() {
       var colorMap, lot, m, order, v, _, _i, _j, _len, _len1, _name, _ref, _ref1;
       this.totalParts = 0;
       this.totalPrice = 0;
       colorMap = {};
-      _ref = this.orders;
+      _ref = this.$parent.orders;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         order = _ref[_i];
         _ref1 = order.lots;

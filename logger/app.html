@@ -49,7 +49,7 @@
       </ol>
       <div class="stat" ng-controller="statistics">
         <div class="stat-summary">
-          <ng-pluralize count="orders.length"
+          <ng-pluralize count="$parent.orders.length"
             when="{1: '{} entry', other: '{} entries'}"></ng-pluralize> /
           <ng-pluralize count="totalParts"
             when="{1: '{} part', other: '{} parts'}"></ng-pluralize> /

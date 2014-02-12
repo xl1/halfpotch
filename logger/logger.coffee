@@ -219,21 +219,18 @@ class OrderDetail extends Controller
 
 
 class Statistics extends Controller
-  constructor: (Order, @exchangeRate, $q) ->
+  constructor: (Order, @exchangeRate) ->
     @totalParts = 0
     @totalPrice = 0
     @colors = []
-    @orders = []
-    $q.all([
-      Order.fetchAll()
-      exchangeRate.load()
-    ]).then ([@orders]) => @calc()
+    exchangeRate.load().then =>
+      @$watch '$parent.selectedOrder', @update.bind @
 
-  calc: ->
+  update: ->
     @totalParts = 0
     @totalPrice = 0
     colorMap = {}
-    for order in @orders
+    for order in @$parent.orders
       for lot in order.lots
         @totalParts += lot.amount
         if lot.price

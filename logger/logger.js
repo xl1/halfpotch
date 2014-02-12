@@ -411,12 +411,6 @@
 
   app.controller('statistics', Statistics.getController());
 
-  angular.module('logger').constant('loggerConstants', {
-    dataurl: '/data/',
-    appurl: '/logger/',
-    apiurl: '/logger/api/'
-  });
-
   angular.module('logger').service('route', function() {
     var baseURL, makeRoute, route;
     baseURL = '';

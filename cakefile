@@ -16,7 +16,7 @@ sources = {
     'test/dataloader.server', 'test/logger.server'
   ]
   'logger/logger': [
-    'logger/logger', 'logger/constants', 'logger/route', 'logger/dataloader'
+    'logger/logger', 'logger/route', 'logger/dataloader'
   ]
 }
   

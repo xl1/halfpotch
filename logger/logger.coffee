@@ -38,7 +38,7 @@ app.service 'lotsTextParser', (dataLoader) ->
 
   searchPart: (text, { partList }) ->
     for p in partList when text.indexOf(p.name) is 0
-      return p
+      return { name: p.name, categoryId: p.categoryId, id: p.id }
     return { name: text }
 
   parseLotText: (text, data) ->

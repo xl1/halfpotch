@@ -76,7 +76,8 @@ table {
 .select {
   margin: 0;
   padding: 0;
-  height: 100%;
+  height: -webkit-calc(100% - 50px);
+  height: calc(100% - 50px);
   overflow-y: auto;
   list-style: none; }
   .select li {
@@ -178,3 +179,19 @@ table {
   display: inline-block; }
   .delete-button:active {
     background-color: #d62d2d; }
+
+.stat {
+  height: 50px; }
+  .stat .stat-summary {
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    font-size: small; }
+  .stat .stat-colors {
+    margin: 0;
+    padding: 0;
+    height: 10px; }
+  .stat .stat-color {
+    list-style-type: none;
+    float: left;
+    height: 100%; }

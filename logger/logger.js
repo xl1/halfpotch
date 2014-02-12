@@ -451,6 +451,13 @@
       });
     };
 
+    Statistics.prototype.getColorStyle = function(color) {
+      return {
+        backgroundColor: color.color.rgb,
+        width: "" + (color.amount / this.totalParts * 100) + "%"
+      };
+    };
+
     return Statistics;
 
   })(Controller);

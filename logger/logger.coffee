@@ -244,6 +244,10 @@ class Statistics extends Controller
     @colors =
       (v for own _, v of colorMap).sort (a, b) -> b.amount - a.amount
 
+  getColorStyle: (color) ->
+    backgroundColor: color.color.rgb
+    width: "#{color.amount / @totalParts * 100}%"
+
 
 # initialize
 app.controller 'logger', Logger.getController()

@@ -47,6 +47,19 @@
           <span class="order-date">{{ order.date | date:'yyyy-MM-dd' }}</span>
         </li>
       </ol>
+      <div class="stat" ng-controller="statistics">
+        <div class="stat-summary">
+          <ng-pluralize count="orders.length"
+            when="{1: '{} entry', other: '{} entries'}"></ng-pluralize> /
+          <ng-pluralize count="totalParts"
+            when="{1: '{} part', other: '{} parts'}"></ng-pluralize> /
+          {{ totalPrice|currency:'JPY '}}
+        </div>
+        <ol class="stat-colors">
+          <li class="stat-color" ng-repeat="color in colors"
+            ng-style="getColorStyle(color)"></li>
+        </ol>
+      </div>
     </div>
     <div class="main">
       <div class="controls">

@@ -399,7 +399,57 @@
   Statistics = (function(_super) {
     __extends(Statistics, _super);
 
-    function Statistics() {}
+    function Statistics(Order, exchangeRate, $q) {
+      this.exchangeRate = exchangeRate;
+      this.totalParts = 0;
+      this.totalPrice = 0;
+      this.colors = [];
+      this.orders = [];
+      $q.all([Order.fetchAll(), exchangeRate.load()]).then((function(_this) {
+        return function(_arg) {
+          _this.orders = _arg[0];
+          return _this.calc();
+        };
+      })(this));
+    }
+
+    Statistics.prototype.calc = function() {
+      var colorMap, lot, m, order, v, _, _i, _j, _len, _len1, _name, _ref, _ref1;
+      this.totalParts = 0;
+      this.totalPrice = 0;
+      colorMap = {};
+      _ref = this.orders;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        order = _ref[_i];
+        _ref1 = order.lots;
+        for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+          lot = _ref1[_j];
+          this.totalParts += lot.amount;
+          if (lot.price) {
+            this.totalPrice += this.exchangeRate.exchange(lot.price, 'JPY') || 0;
+          }
+          if (lot.color) {
+            m = colorMap[_name = lot.color.id] || (colorMap[_name] = {
+              color: lot.color,
+              amount: 0
+            });
+            m.amount += lot.amount;
+          }
+        }
+      }
+      return this.colors = ((function() {
+        var _results;
+        _results = [];
+        for (_ in colorMap) {
+          if (!__hasProp.call(colorMap, _)) continue;
+          v = colorMap[_];
+          _results.push(v);
+        }
+        return _results;
+      })()).sort(function(a, b) {
+        return b.amount - a.amount;
+      });
+    };
 
     return Statistics;
 

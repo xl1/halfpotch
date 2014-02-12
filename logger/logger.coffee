@@ -219,7 +219,30 @@ class OrderDetail extends Controller
 
 
 class Statistics extends Controller
-  constructor: ->
+  constructor: (Order, @exchangeRate, $q) ->
+    @totalParts = 0
+    @totalPrice = 0
+    @colors = []
+    @orders = []
+    $q.all([
+      Order.fetchAll()
+      exchangeRate.load()
+    ]).then ([@orders]) => @calc()
+
+  calc: ->
+    @totalParts = 0
+    @totalPrice = 0
+    colorMap = {}
+    for order in @orders
+      for lot in order.lots
+        @totalParts += lot.amount
+        if lot.price
+          @totalPrice += @exchangeRate.exchange(lot.price, 'JPY') or 0
+        if lot.color
+          m = colorMap[lot.color.id] or= { color: lot.color, amount: 0 }
+          m.amount += lot.amount
+    @colors =
+      (v for own _, v of colorMap).sort (a, b) -> b.amount - a.amount
 
 
 # initialize

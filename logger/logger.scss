@@ -1,6 +1,8 @@
 $header-height: 50px;
 @import '../core/core.scss';
 
+$stat-height: 50px;
+
 table {
   border-collapse: collapse;
   border-spacing: 0;
@@ -40,7 +42,8 @@ table {
 .select {
   margin: 0;
   padding: 0;
-  height: 100%;
+  height: -webkit-calc(#{unquote('100% - ' + $stat-height)});
+  height: calc(#{unquote('100% - ' + $stat-height)});
   overflow-y: auto;
   list-style: none;
  
@@ -172,4 +175,24 @@ table {
 .delete-button {
   @include button(#e33);
   display: inline-block;
+}
+
+.stat {
+  height: $stat-height;
+  .stat-summary {
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    font-size: small;
+  }
+  .stat-colors {
+    margin: 0;
+    padding: 0;
+    height: 10px;
+  }
+  .stat-color {
+    list-style-type: none;
+    float: left;
+    height: 100%;
+  }
 }

@@ -219,6 +219,35 @@ class OrderDetail extends Controller
     order.delete()
 
 
+class Statistics extends Controller
+  constructor: (Order, @exchangeRate) ->
+    @totalParts = 0
+    @totalPrice = 0
+    @colors = []
+    exchangeRate.load().then =>
+      @$watch '$parent.selectedOrder', @update.bind @
+
+  update: ->
+    @totalParts = 0
+    @totalPrice = 0
+    colorMap = {}
+    for order in @$parent.orders
+      for lot in order.lots
+        @totalParts += lot.amount
+        if lot.price
+          @totalPrice += @exchangeRate.exchange(lot.price, 'JPY') or 0
+        if lot.color
+          m = colorMap[lot.color.id] or= { color: lot.color, amount: 0 }
+          m.amount += lot.amount
+    @colors =
+      (v for own _, v of colorMap).sort (a, b) -> b.amount - a.amount
+
+  getColorStyle: (color) ->
+    backgroundColor: color.color.rgb
+    width: "#{color.amount / @totalParts * 100}%"
+
+
 # initialize
 app.controller 'logger', Logger.getController()
 app.controller 'orderDetail', OrderDetail.getController()
+app.controller 'statistics', Statistics.getController()

@@ -32,7 +32,7 @@
   </header>
   <div id="form" ng-controller="orderDetail">
     <div class="column">
-      <ol class="select" id="orderList">
+      <ol class="select">
         <li class="order-add-button" ng-click="addOrder()">エントリを追加...</li>
         <li ng-repeat="order in orders" ng-click="select(order)"
           ng-class="{ selected: selectedOrder == order }">

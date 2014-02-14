@@ -5,6 +5,7 @@ import json
 import re
 import logging
 from datetime import datetime
+from email.utils import parseaddr
 from google.appengine.ext import ndb
 from google.appengine.api import memcache, users
 from google.appengine.ext.webapp.mail_handlers import InboundMailHandler
@@ -88,7 +89,8 @@ class MailHandler(InboundMailHandler):
       content += body.decode()
 
     # user
-    username = message.to[:message.to.index('@')]
+    _, address = parseaddr(message.to)
+    username = address[:address.index('@')]
 
     # title
     m = re.search(r'BrickLink Order #(\d+)', message.subject)

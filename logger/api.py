@@ -103,7 +103,7 @@ class MailHandler(InboundMailHandler):
     m = reDate.search(content)
     if m:
       # e.g. "Jul 27, 2013 09:30"
-      date = datetime.strptime(m.group(1), '%b %d, %Y %H:%M')
+      date = datetime.strptime(m.group(1).strip(), '%b %d, %Y %H:%M')
     else:
       date = datetime.now()
 

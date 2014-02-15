@@ -2,13 +2,12 @@
 
 import webapp2
 import json
-import re
 import logging
 from datetime import datetime
-from email.utils import parseaddr
 from google.appengine.ext import ndb
 from google.appengine.api import memcache, users
 from google.appengine.ext.webapp.mail_handlers import InboundMailHandler
+import mailservice
 
 class Order(ndb.Model):
   username = ndb.StringProperty()
@@ -80,6 +79,27 @@ class UserHandler(webapp2.RequestHandler):
       'name': username,
       'isLoggedIn': username != 'anonymous'
     }))
+
+
+def putOrderInformation(info, username):
+    date = info.getOrderDate()
+    lotsText = info.getLotsText()
+    if lotsText:
+      order = Order(
+        username=username,
+        content={
+          'title': info.getTitle(),
+          'comment': '',
+          'date': datetime.strftime(date, '%Y-%m-%d'),
+          'labels': [],
+          'lots': [],
+          'lotsText': lotsText,
+          'unresolved': True
+        },
+        date=date
+      )
+      order.put()
+      return order
 
 
 class MailHandler(InboundMailHandler):

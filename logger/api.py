@@ -104,44 +104,9 @@ def putOrderInformation(info, username):
 
 class MailHandler(InboundMailHandler):
   def receive(self, message):
-    content = u''
-    for ctype, body in message.bodies('text/plain'):
-      content += body.decode()
-
-    # user
-    _, address = parseaddr(message.to)
-    username = address[:address.index('@')]
-
-    # title
-    m = re.search(r'BrickLink Order #(\d+)', message.subject)
-    title = m.group(0) if m else message.subject
-
-    # lots
-    reLot = re.compile(r'\[(new|used)\] .+ \(x\d+\) \.+ .+$', re.IGNORECASE | re.MULTILINE)
-    lotsText = '\n'.join(m.group(0) for m in reLot.finditer(content))
-
-    # date
-    reDate = re.compile(r'^\W*Order Date: (.*)$', re.MULTILINE)
-    m = reDate.search(content)
-    if m:
-      # e.g. "Jul 27, 2013 09:30"
-      date = datetime.strptime(m.group(1).strip(), '%b %d, %Y %H:%M')
-    else:
-      date = datetime.now()
-
-    Order(
-      username=username,
-      content={
-        'title': title,
-        'comment': '',
-        'date': datetime.strftime(date, '%Y-%m-%d'),
-        'labels': [],
-        'lots': [],
-        'lotsText': lotsText,
-        'unresolved': True
-      },
-      date=date
-    ).put()
+    minfo = mailservice.MessageInformation(message.original)
+    info = mailservice.OrderInformation(minfo)
+    putOrderInformation(info, info.getRecipientUserName())
 
 
 app = webapp2.WSGIApplication([

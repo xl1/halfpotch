@@ -102,6 +102,15 @@ def putOrderInformation(info, username):
       return order
 
 
+class MailImportHandler(webapp2.RequestHandler):
+  def post(self):
+    username = getUserName()
+    mbox = self.request.get('file')
+    for minfo in mailservice.MboxInformation(mbox):
+      info = mailservice.OrderInformation(minfo)
+      putOrderInformation(info, username)
+
+
 class MailHandler(InboundMailHandler):
   def receive(self, message):
     minfo = mailservice.MessageInformation(message.original)
@@ -115,5 +124,6 @@ app = webapp2.WSGIApplication([
   (r'/logger/api/orders/?(\w+)?', OrderListHandler),
   (r'/logger/api/order/(create)()', OrderHandler),
   (r'/logger/api/order/(\w+)/(\d+)', OrderHandler),
+  (r'/logger/api/import', MailImportHandler),
   MailHandler.mapping()
 ], debug=True)

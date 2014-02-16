@@ -60,13 +60,33 @@ table {
       @extend %emphasis;
     }
   }
-  .order-add-button {
-    color: #aaa;
+  %order-controls {
     text-align: center;
     line-height: 2.0;
+  }
+  .order-add-button, .order-import-button {
+    @extend %order-controls;
+    color: #aaa;
+    float: left;
+    padding: 0;
+    width: 50%;
 
     &:hover {
       color: black;
+    }
+  }
+  .order-import-panel {
+    @extend %order-controls;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    background: #fff;
+    &.showing {
+      max-height: 100px;
+    }
+    &:hover {
+      background: #fff;
+      cursor: auto;
     }
   }
 }

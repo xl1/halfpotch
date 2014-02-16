@@ -26,5 +26,6 @@ angular.module('logger').service 'route', ->
           create: ''
           update: (id) -> "/#{id}"
           delete: (id) -> "/#{id}"
+        import: ''
   route.setBaseURL = (b) -> baseURL = b
   route

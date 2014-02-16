@@ -87,12 +87,26 @@ table {
     .select li:hover {
       background-color: #ccc;
       cursor: pointer; }
-  .select .order-add-button {
-    color: #aaa;
+  .select .order-add-button, .select .order-import-button, .select .order-import-panel {
     text-align: center;
     line-height: 2.0; }
-    .select .order-add-button:hover {
+  .select .order-add-button, .select .order-import-button {
+    color: #aaa;
+    float: left;
+    padding: 0;
+    width: 50%; }
+    .select .order-add-button:hover, .select .order-import-button:hover {
       color: black; }
+  .select .order-import-panel {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    background: #fff; }
+    .select .order-import-panel.showing {
+      max-height: 100px; }
+    .select .order-import-panel:hover {
+      background: #fff;
+      cursor: auto; }
 
 .controls {
   float: right; }

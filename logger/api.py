@@ -2,13 +2,12 @@
 
 import webapp2
 import json
-import re
 import logging
 from datetime import datetime
-from email.utils import parseaddr
 from google.appengine.ext import ndb
 from google.appengine.api import memcache, users
 from google.appengine.ext.webapp.mail_handlers import InboundMailHandler
+import mailservice
 
 class Order(ndb.Model):
   username = ndb.StringProperty()
@@ -82,46 +81,41 @@ class UserHandler(webapp2.RequestHandler):
     }))
 
 
+def putOrderInformation(info, username):
+    date = info.getOrderDate()
+    lotsText = info.getLotsText()
+    if lotsText:
+      order = Order(
+        username=username,
+        content={
+          'title': info.getTitle(),
+          'comment': '',
+          'date': datetime.strftime(date, '%Y-%m-%d'),
+          'labels': [],
+          'lots': [],
+          'lotsText': lotsText,
+          'unresolved': True
+        },
+        date=date
+      )
+      order.put()
+      return order
+
+
+class MailImportHandler(webapp2.RequestHandler):
+  def post(self):
+    username = getUserName()
+    mbox = self.request.get('file')
+    for minfo in mailservice.MboxInformation(mbox):
+      info = mailservice.OrderInformation(minfo)
+      putOrderInformation(info, username)
+
+
 class MailHandler(InboundMailHandler):
   def receive(self, message):
-    content = u''
-    for ctype, body in message.bodies('text/plain'):
-      content += body.decode()
-
-    # user
-    _, address = parseaddr(message.to)
-    username = address[:address.index('@')]
-
-    # title
-    m = re.search(r'BrickLink Order #(\d+)', message.subject)
-    title = m.group(0) if m else message.subject
-
-    # lots
-    reLot = re.compile(r'\[(new|used)\] .+ \(x\d+\) \.+ .+$', re.IGNORECASE | re.MULTILINE)
-    lotsText = '\n'.join(m.group(0) for m in reLot.finditer(content))
-
-    # date
-    reDate = re.compile(r'^\W*Order Date: (.*)$', re.MULTILINE)
-    m = reDate.search(content)
-    if m:
-      # e.g. "Jul 27, 2013 09:30"
-      date = datetime.strptime(m.group(1).strip(), '%b %d, %Y %H:%M')
-    else:
-      date = datetime.now()
-
-    Order(
-      username=username,
-      content={
-        'title': title,
-        'comment': '',
-        'date': datetime.strftime(date, '%Y-%m-%d'),
-        'labels': [],
-        'lots': [],
-        'lotsText': lotsText,
-        'unresolved': True
-      },
-      date=date
-    ).put()
+    minfo = mailservice.MessageInformation(message.original)
+    info = mailservice.OrderInformation(minfo)
+    putOrderInformation(info, info.getRecipientUserName())
 
 
 app = webapp2.WSGIApplication([
@@ -130,5 +124,6 @@ app = webapp2.WSGIApplication([
   (r'/logger/api/orders/?(\w+)?', OrderListHandler),
   (r'/logger/api/order/(create)()', OrderHandler),
   (r'/logger/api/order/(\w+)/(\d+)', OrderHandler),
+  (r'/logger/api/import', MailImportHandler),
   MailHandler.mapping()
 ], debug=True)

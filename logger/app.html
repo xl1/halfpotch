@@ -33,7 +33,15 @@
   <div id="form" ng-controller="orderDetail">
     <div class="column">
       <ol class="select">
-        <li class="order-add-button" ng-click="addOrder()">エントリを追加...</li>
+        <li class="order-add-button" ng-click="addOrder()">エントリを追加</li>
+        <li class="order-import-button" ng-click="toggleImportPanel()"
+          ng-class="{ selected: showingImportPanel }">まとめてインポート</li>
+        <li class="order-import-panel" ng-class="{ showing: showingImportPanel }">
+          MBOX 形式のメールアーカイブをインポートします。
+          <input type="file" id="importFile">
+          <input type="button" class="button"
+            value="アップロード" ng-click="uploadArchive()">
+        </li>
         <li ng-repeat="order in orders" ng-click="select(order)"
           ng-class="{ selected: selectedOrder == order }">
           <!-- uneditable order summary -->

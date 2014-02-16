@@ -206,6 +206,20 @@
         });
       };
 
+      Order.uploadArchive = function(file) {
+        var fd;
+        fd = new FormData;
+        fd.append('file', file);
+        return $http.post(route.logger.api["import"](), fd, {
+          transformRequest: function(x) {
+            return x;
+          },
+          headers: {
+            'Content-Type': false
+          }
+        });
+      };
+
       function Order(order) {
         var _ref;
         if (order == null) {
@@ -398,6 +412,21 @@
       return order["delete"]();
     };
 
+    OrderDetail.prototype.toggleImportPanel = function() {
+      return this.showingImportPanel = !this.showingImportPanel;
+    };
+
+    OrderDetail.prototype.uploadArchive = function() {
+      var file, _ref;
+      if (file = (_ref = document.getElementById('importFile').files) != null ? _ref[0] : void 0) {
+        return this.Order.uploadArchive(file).then((function(_this) {
+          return function() {
+            return _this.$window.location.reload();
+          };
+        })(this));
+      }
+    };
+
     return OrderDetail;
 
   })(Controller);
@@ -521,7 +550,8 @@
             "delete": function(id) {
               return "/" + id;
             }
-          }
+          },
+          "import": ''
         }
       }
     });

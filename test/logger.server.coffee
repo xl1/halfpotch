@@ -11,6 +11,7 @@ lotsTextParserTestText = '''
 [Used] Green Plant Flower 2 x 2 Leaves - Angular  (x11) ..... US $0.10 each = US $1.10
 [New] Light Bluish Gray Brick, Modified 1 x 4 with 4 Studs on 1 Side  (x250) ..... EUR 0.08403 each = EUR 21.0075
 [New] Light Bluish Gray Brick, Modified 1 x 4 with 4 Studs on One Side  (x250) ..... EUR 0.08403 each = EUR 21.0075
+[New] Brown Door 1 x 3 x 6 Curved Top  (x4) ..... US $0.88 each = US $3.52
 '''
 lotsTextParserTestResult = [
   {
@@ -186,6 +187,22 @@ lotsTextParserTestResult = [
     },
     "price": "EUR 21.0075",
     "priceEach": "EUR 0.08403"
+  },
+  {
+    "amount": 4,
+    "color": {
+      "id": "8",
+      "name": "Brown",
+      "rgb": "#532115"
+    },
+    "condition": "New",
+    "part": {
+      "categoryId": "12",
+      "id": "2554",
+      "name": "Door 1 x 3 x 6 Curved Top"
+    },
+    "price": "US $3.52",
+    "priceEach": "US $0.88"
   }
 ]
 describe 'lotsTextParser', ->

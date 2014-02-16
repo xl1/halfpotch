@@ -49,7 +49,7 @@ app.service 'lotsTextParser', (dataLoader) ->
     text = text.replace /\[(new|used)\]/i, (_, cond) ->
       condition = if cond.toLowerCase() is 'new' then 'New' else 'Used'
       ''
-    .replace /(?:\Wx(\d+))|(?:(\d+)x\W)/i, (_, a1, a2) ->
+    .replace /(?:\Wx(\d+)\W)|(?:\W(\d+)x\W)/i, (_, a1, a2) ->
       amount = +(a1 or a2)
       ''
     .replace /\s+([A-Z]{3} |[A-Z]{2} \$)([\d,\.]+)(\s*each)?/, (_, cur, p) ->
@@ -60,7 +60,7 @@ app.service 'lotsTextParser', (dataLoader) ->
     .replace /\s+([A-Z]{3} |[A-Z]{2} \$)([\d,\.]+)/, (_, cur, p) ->
       price = cur + p
       ''
-    .replace /\ [.,]+ /g, ' '
+    text = /[^ ]*\w.*\w[^ ]*/.exec(text)?[0]
 
     if color = @searchColor(text, data)
       cname = color.name

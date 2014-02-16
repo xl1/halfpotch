@@ -114,7 +114,7 @@
         };
       },
       parseLotText: function(text, data) {
-        var amount, cname, color, condition, idx, part, price, priceEach;
+        var amount, cname, color, condition, idx, part, price, priceEach, _ref;
         condition = '';
         amount = 1;
         priceEach = '';
@@ -122,7 +122,7 @@
         text = text.replace(/\[(new|used)\]/i, function(_, cond) {
           condition = cond.toLowerCase() === 'new' ? 'New' : 'Used';
           return '';
-        }).replace(/(?:\Wx(\d+))|(?:(\d+)x\W)/i, function(_, a1, a2) {
+        }).replace(/(?:\Wx(\d+)\W)|(?:\W(\d+)x\W)/i, function(_, a1, a2) {
           amount = +(a1 || a2);
           return '';
         }).replace(/\s+([A-Z]{3} |[A-Z]{2} \$)([\d,\.]+)(\s*each)?/, function(_, cur, p) {
@@ -133,7 +133,8 @@
         }).replace(/\s+([A-Z]{3} |[A-Z]{2} \$)([\d,\.]+)/, function(_, cur, p) {
           price = cur + p;
           return '';
-        }).replace(/\ [.,]+ /g, ' ');
+        });
+        text = (_ref = /[^ ]*\w.*\w[^ ]*/.exec(text)) != null ? _ref[0] : void 0;
         if (color = this.searchColor(text, data)) {
           cname = color.name;
           idx = text.indexOf(cname);

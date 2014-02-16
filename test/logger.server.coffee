@@ -9,6 +9,8 @@ lotsTextParserTestText = '''
 [New] White Window 1 x 2 x 2 Flat Front  (x98) ..... US $0.125 each = US $12.25
 [New] Light Bluish Gray Technic, Pin 1/2  (x50) ..... CZK 0.40 each = CZK 20.00
 [Used] Green Plant Flower 2 x 2 Leaves - Angular  (x11) ..... US $0.10 each = US $1.10
+[New] Light Bluish Gray Brick, Modified 1 x 4 with 4 Studs on 1 Side  (x250) ..... EUR 0.08403 each = EUR 21.0075
+[New] Light Bluish Gray Brick, Modified 1 x 4 with 4 Studs on One Side  (x250) ..... EUR 0.08403 each = EUR 21.0075
 '''
 lotsTextParserTestResult = [
   {
@@ -148,12 +150,42 @@ lotsTextParserTestResult = [
     },
     "condition": "Used",
     "part": {
-      "categoryId": "25"
+      "categoryId": "25",
       "id": "4727",
       "name": "Plant Flower 2 x 2 Leaves - Angular"
     },
     "price": "US $1.10",
     "priceEach": "US $0.10"
+  },
+  {
+    "amount": 250,
+    "color": {
+      "id": "86",
+      "name": "Light Bluish Gray",
+      "rgb": "#afb5c7"
+    },
+    "condition": "New",
+    "part": {
+      "categoryId": "7",
+      "id": "30414",
+      "name": "Brick, Modified 1 x 4 with 4 Studs on 1 Side"
+    },
+    "price": "EUR 21.0075",
+    "priceEach": "EUR 0.08403"
+  },
+  {
+    "amount": 250,
+    "color": {
+      "id": "86",
+      "name": "Light Bluish Gray",
+      "rgb": "#afb5c7"
+    },
+    "condition": "New",
+    "part": {
+      "name": "Brick, Modified 1 x 4 with 4 Studs on One Side"
+    },
+    "price": "EUR 21.0075",
+    "priceEach": "EUR 0.08403"
   }
 ]
 describe 'lotsTextParser', ->

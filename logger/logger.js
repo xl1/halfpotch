@@ -411,6 +411,10 @@
       return order["delete"]();
     };
 
+    OrderDetail.prototype.toggleImportPanel = function() {
+      return this.showingImportPanel = !this.showingImportPanel;
+    };
+
     OrderDetail.prototype.uploadArchive = function() {
       var file, _ref;
       if (file = (_ref = document.getElementById('importFile').files) != null ? _ref[0] : void 0) {

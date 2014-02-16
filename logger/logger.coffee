@@ -229,6 +229,9 @@ class OrderDetail extends Controller
     @orders.splice(@orders.indexOf(order), 1)
     order.delete()
 
+  toggleImportPanel: ->
+    @showingImportPanel = not @showingImportPanel
+
   uploadArchive: ->
     if file = document.getElementById('importFile').files?[0]
       @Order.uploadArchive(file).then =>

@@ -101,6 +101,17 @@ app.factory 'Order', ($http, dateFilter, lotsTextParser, route) ->
       $http.get(route.logger.api.orders()).then ({ data }) ->
         (new Order o for o in data)
 
+    @uploadArchive: (file) ->
+      fd = new FormData
+      fd.append 'file', file
+      $http.post(
+        route.logger.api.import(),
+        fd,
+        transformRequest: (x) -> x
+        headers: 'Content-Type': false
+      )
+      # see: [Using FormData with $http](https://groups.google.com/forum/#!topic/angular/MBf8qvBpuVE)
+
     constructor: (order={}) ->
       @id       = order.id
       @title    = order.title ? 'New Entry'
@@ -217,6 +228,11 @@ class OrderDetail extends Controller
     @selectedOrder = null
     @orders.splice(@orders.indexOf(order), 1)
     order.delete()
+
+  uploadArchive: ->
+    if file = document.getElementById('importFile').files?[0]
+      @Order.uploadArchive(file).then =>
+        @$window.location.reload()
 
 
 class Statistics extends Controller

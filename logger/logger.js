@@ -666,10 +666,10 @@
             }
             for (_k = 0, _len2 = partsData.length; _k < _len2; _k++) {
               _ref2 = partsData[_k], categoryId = _ref2[0], categoryName = _ref2[1], id = _ref2[2], name = _ref2[3];
-              part = parts[id];
-              if (!part) {
-                continue;
-              }
+              part = parts[id] || (parts[id] = {
+                id: id,
+                colors: []
+              });
               category = categories[categoryId] || (categories[categoryId] = {
                 id: categoryId,
                 name: _this.unescapeHTML(categoryName),

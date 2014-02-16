@@ -29,8 +29,7 @@ angular.module('logger').service 'dataLoader', ($q, $http, route) ->
         if color not in part.colors
           part.colors.push color
       for [categoryId, categoryName, id, name] in partsData
-        part = parts[id]
-        continue unless part
+        part = parts[id] or= { id, colors: [] }
         category = categories[categoryId] or=
           { id: categoryId, name: @unescapeHTML(categoryName), parts: [] }
         part.name = @unescapeHTML(name)

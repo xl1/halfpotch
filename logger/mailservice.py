@@ -7,6 +7,7 @@ import re
 from datetime import datetime
 from StringIO import StringIO
 
+
 class MessageInformation:
   def __init__(self, message):
     self.to = message['to']
@@ -60,7 +61,10 @@ class OrderInformation:
     return m.group(0) if m else self.message.subject
 
   def getLotsText(self):
-    reLot = re.compile(r'\[(new|used)\] .+ \(x\d+\) \.+ .+$', re.IGNORECASE | re.MULTILINE)
+    reLot = re.compile(
+      r'\[(new|used)\] .+ \(x\d+\) \.+ .+$',
+      re.IGNORECASE | re.MULTILINE
+    )
     return '\n'.join(m.group(0) for m in reLot.finditer(self.message.body))
 
   def getOrderDate(self):

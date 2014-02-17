@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
-import webapp2
 import json
 import logging
+import webapp2
 from datetime import datetime
 from google.appengine.ext import ndb
 from google.appengine.api import memcache, users
 from google.appengine.ext.webapp.mail_handlers import InboundMailHandler
 import mailservice
+
 
 class Order(ndb.Model):
   username = ndb.StringProperty()
@@ -25,7 +26,6 @@ class OrderListHandler(webapp2.RequestHandler):
     if not username:
       username = getUserName()
     orders = Order.query(Order.username == username).order(-Order.date).iter()
-
     orderList = []
     for order in orders:
       content = order.content
@@ -82,24 +82,24 @@ class UserHandler(webapp2.RequestHandler):
 
 
 def putOrderInformation(info, username):
-    date = info.getOrderDate()
-    lotsText = info.getLotsText()
-    if lotsText:
-      order = Order(
-        username=username,
-        content={
-          'title': info.getTitle(),
-          'comment': '',
-          'date': datetime.strftime(date, '%Y-%m-%d'),
-          'labels': [],
-          'lots': [],
-          'lotsText': lotsText,
-          'unresolved': True
-        },
-        date=date
-      )
-      order.put()
-      return order
+  date = info.getOrderDate()
+  lotsText = info.getLotsText()
+  if lotsText:
+    order = Order(
+      username=username,
+      content={
+        'title': info.getTitle(),
+        'comment': '',
+        'date': datetime.strftime(date, '%Y-%m-%d'),
+        'labels': [],
+        'lots': [],
+        'lotsText': lotsText,
+        'unresolved': True
+      },
+      date=date
+    )
+    order.put()
+    return order
 
 
 class MailImportHandler(webapp2.RequestHandler):

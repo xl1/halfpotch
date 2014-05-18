@@ -1008,14 +1008,15 @@
   Router = (function() {
     function Router(select) {
       this.select = select;
-      select.listen('add', (function(_this) {
-        return function() {
-          var query;
-          query = _this.dump(select.options);
-          return window.history.replaceState(query, null, '?o=' + query);
-        };
-      })(this));
+      select.listen('add', this.update.bind(this));
+      select.listen('change', this.update.bind(this));
     }
+
+    Router.prototype.update = function() {
+      var query;
+      query = this.dump(this.select.options);
+      return window.history.replaceState(query, null, '?o=' + query);
+    };
 
     Router.prototype.setData = function(data) {
       var item, items, query, search, _i, _len, _ref;

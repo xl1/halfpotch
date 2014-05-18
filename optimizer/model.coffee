@@ -85,9 +85,12 @@ class DataProcessor extends Model
 
 class Router
   constructor: (@select) ->
-    select.listen 'add', =>
-      query = @dump(select.options)
-      window.history.replaceState(query, null, '?o=' + query)
+    select.listen 'add', @update.bind @
+    select.listen 'change', @update.bind @
+
+  update: ->
+    query = @dump(@select.options)
+    window.history.replaceState(query, null, '?o=' + query)
 
   setData: (@data) ->
     search = decodeURIComponent(location.search)

@@ -46,9 +46,17 @@ handlers:
   upload: index.html
 
 # other public files
-- url: /(.*/.*\.(js|css|html))
+- url: /(.*/.*\.(js|css|png|html))
   static_files: \1
-  upload: .*/.*\.(js|css|html)
+  upload: .*/.*\.(js|css|png|html)
+
+- url: /halfpotch-ext.crx
+  static_files: halfpotch-ext.crx
+  upload: halfpotch-ext\.crx
+
+- url: /favicon.ico
+  static_files: favicon.ico
+  upload: favicon\.ico
 
 
 libraries:

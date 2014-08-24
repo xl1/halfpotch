@@ -1,0 +1,13 @@
+cron:
+- description: get colors data from Bricklink
+  url: /optimizer/app/fetchbldata?num=3
+  schedule: every tuesday, saturday 04:05
+  timezone: Asia/Tokyo
+- description: get codes data from Bricklink
+  url: /optimizer/app/fetchbldata?num=5
+  schedule: every tuesday, saturday 05:05
+  timezone: Asia/Tokyo
+- description: get parts data from Bricklink
+  url: /optimizer/app/fetchbldata?num=0
+  schedule: every tuesday, saturday 06:05
+  timezone: Asia/Tokyo

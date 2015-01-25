@@ -2,13 +2,13 @@
 
 レゴ買うのに便利なツール
 
-available at <http://halfpotch.appspot.com>
+available at <https://halfpotch.appspot.com>
 
-- [mosaic maker](http://halfpotch.appspot.com/mosaicmaker)
+- [mosaic maker](https://halfpotch.appspot.com/mosaicmaker)
   - 画像からレゴモザイク画を作る
-- [BrickLink order optimizer](http://halfpotch.appspot.com/optimizer)
+- [BrickLink order optimizer](https://halfpotch.appspot.com/optimizer)
   - [BrickLink](http://www.bricklink.com/)
     でレゴを買うときに、なるべく少ない店で買えるように考えてくれる
-- [logger](http://halfpotch.appspot.com/logger)
+- [logger](https://halfpotch.appspot.com/logger)
   - [BrickLink](http://www.bricklink.com/)
     での注文をログにとっておいて、コメントなどをつけて管理する

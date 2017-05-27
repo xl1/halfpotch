@@ -57,7 +57,7 @@ class ImageProcessor extends Model
     for name in Object.keys @fshader
       @program[name] = @_gl.makeProgram(@vshader, @fshader[name])
     @colorReduced = document.createElement('canvas').getContext '2d'
-    @_img = document.createElement 'img'  
+    @_img = document.createElement 'img'
 
   _renderGL: (width, height, program, source, u_colors) ->
     vars = { u_colors }
@@ -79,7 +79,7 @@ class ImageProcessor extends Model
     colors = (c.color for c in @palette.colors when c.use)
     if @option.get 'dither'
       program = @program.reduceColorDithered
-      colors = 
+      colors =
       colorCanv = colorsToCanvas(128, 2,
         SuperArray::combinations.call(
           colors.sort((a, b) -> a.luma() - b.luma()), 2
@@ -90,7 +90,7 @@ class ImageProcessor extends Model
     else
       program = @program.reduceColor
       colorCanv = colorsToCanvas 32, 1, colors
-    
+
     # draw on canvas: @colorReduced
     canv = @colorReduced.canvas
     canv.width  = @width  = @option.get('width')
@@ -196,9 +196,9 @@ class PaletteView extends View
       li.style.backgroundColor = c.color
       li.dataset.name = c.name
       frag.appendChild li
-    elem.appendChild frag
+    @elem.appendChild frag
 
-    elem.addEventListener 'click', (e) ->
+    @elem.addEventListener 'click', (e) ->
       name = e.target.dataset.name
       color = model.color(name)
       return unless color
@@ -252,7 +252,7 @@ class RendererView extends View
   rendered: false
   constructor: (model, @elem) ->
     super
-    @_ctx = elem.getContext '2d'
+    @_ctx = @elem.getContext '2d'
 
   show: (file) ->
     if file

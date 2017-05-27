@@ -51,7 +51,7 @@ class DataProcessor extends Model
     @change 'reset'
 
   process: (@items) ->
-    params = (for item in items
+    params = (for item in @items
       { part: item.part.id, color: item.color.id, amount: item.amount }
     )
     @_loader.load (data) =>
@@ -85,8 +85,8 @@ class DataProcessor extends Model
 
 class Router
   constructor: (@select) ->
-    select.listen 'add', @update.bind @
-    select.listen 'change', @update.bind @
+    @select.listen 'add', @update.bind @
+    @select.listen 'change', @update.bind @
 
   update: ->
     query = @dump(@select.options)
@@ -181,5 +181,5 @@ class Searcher
           options.unshift(item)
     @options = options.sort (a, b) ->
       levels[b.id] - levels[a.id]
-    
+
   ###

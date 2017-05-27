@@ -1,6 +1,6 @@
 # utils
 class Controller
-  @getController: -> 
+  @getController: ->
     required = angular.injector().annotate(@)
     required.unshift('$scope')
     required.push ($scope, args...) =>
@@ -154,7 +154,8 @@ app.factory 'Order', ($http, dateFilter, lotsTextParser, route) ->
 
 # controllers
 class Logger extends Controller
-  constructor: (@$window, $http, route) ->
+  constructor: ($window, $http, route) ->
+    @$window = $window
     @user = {}
     $http.get(route.logger.api.verify()).success (@user) =>
 
@@ -163,13 +164,19 @@ class Logger extends Controller
 
 
 class OrderDetail extends Controller
-  constructor: (@$window, @$q, @lotsTextParser, @Order) ->
+  constructor: ($window, $q, lotsTextParser, Order) ->
+    # 引数名が変わってしまうことを防ぐ
+    @$window = $window
+    @$q = $q
+    @lotsTextParser = lotsTextParser
+    @Order = Order
+
     @orders = []
     @newLabelText = ''
     @newLotsText = ''
     @selectedOrder = null
     @isDirty = false
-    Order.fetchAll().then (@orders) =>
+    @Order.fetchAll().then (@orders) =>
       @selectedOrder = @orders[0]
     $window.addEventListener 'beforeunload', =>
       @saveOrder()
@@ -243,7 +250,7 @@ class Statistics extends Controller
     @totalParts = 0
     @totalPrice = 0
     @colors = []
-    exchangeRate.load().then =>
+    @exchangeRate.load().then =>
       @$watch '$parent.selectedOrder', @update.bind @
 
   update: ->

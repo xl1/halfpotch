@@ -57,7 +57,7 @@ class PartImageView extends View
   constructor: (model, @elem) ->
     super
     img = document.createElement 'img'
-    elem.appendChild img
+    @elem.appendChild img
     model.listen 'select', (item) ->
       colorId = item.colors[0].id
       img.onerror = ->
@@ -121,7 +121,7 @@ class ResultView extends View
   hide: ->
     @elem.className = ''
     @showing = false
-  
+
   render: ->
     return unless @model.result.length
     @elem.innerHTML = ''

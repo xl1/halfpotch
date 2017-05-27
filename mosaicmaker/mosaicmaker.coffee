@@ -301,6 +301,9 @@ main = ->
     cancelEvent(e)
     view.show e.dataTransfer?.files?[0]
   , false
+  $('file-upload').addEventListener 'change', (e) ->
+    view.show e.target.files?[0]
+  , false
   $('render-button').addEventListener 'click', ->
     view.showBlueprint()
   , false

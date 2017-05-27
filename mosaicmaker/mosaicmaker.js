@@ -798,6 +798,10 @@
       cancelEvent(e);
       return view.show((ref = e.dataTransfer) != null ? (ref1 = ref.files) != null ? ref1[0] : void 0 : void 0);
     }, false);
+    $('file-upload').addEventListener('change', function(e) {
+      var ref;
+      return view.show((ref = e.target.files) != null ? ref[0] : void 0);
+    }, false);
     $('render-button').addEventListener('click', function() {
       return view.showBlueprint();
     }, false);

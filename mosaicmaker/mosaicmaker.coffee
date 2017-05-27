@@ -272,7 +272,10 @@ class RendererView extends View
 
   showBlueprint: ->
     return unless @rendered
-    window.open @model.getBlueprint().toDataURL('image/png')
+    a = document.createElement 'a'
+    a.href = @model.getBlueprint().toDataURL('image/png')
+    a.setAttribute 'download', 'image.png'
+    a.click()
 
 
 # main

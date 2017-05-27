@@ -761,10 +761,14 @@
     };
 
     RendererView.prototype.showBlueprint = function() {
+      var a;
       if (!this.rendered) {
         return;
       }
-      return window.open(this.model.getBlueprint().toDataURL('image/png'));
+      a = document.createElement('a');
+      a.href = this.model.getBlueprint().toDataURL('image/png');
+      a.setAttribute('download', 'image.png');
+      return a.click();
     };
 
     return RendererView;

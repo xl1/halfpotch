@@ -275,7 +275,9 @@ class RendererView extends View
     a = document.createElement 'a'
     a.href = @model.getBlueprint().toDataURL('image/png')
     a.setAttribute 'download', 'image.png'
+    document.body.appendChild a
     a.click()
+    document.body.removeChild a
 
 
 # main

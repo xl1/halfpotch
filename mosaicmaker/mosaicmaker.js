@@ -768,7 +768,9 @@
       a = document.createElement('a');
       a.href = this.model.getBlueprint().toDataURL('image/png');
       a.setAttribute('download', 'image.png');
-      return a.click();
+      document.body.appendChild(a);
+      a.click();
+      return document.body.removeChild(a);
     };
 
     return RendererView;
